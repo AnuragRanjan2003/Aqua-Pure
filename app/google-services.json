@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "859144376177",
+    "firebase_url": "https://water-quality-1d349-default-rtdb.firebaseio.com",
+    "project_id": "water-quality-1d349",
+    "storage_bucket": "water-quality-1d349.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:859144376177:android:eb29eec7068d7219f1f0d0",
+        "android_client_info": {
+          "package_name": "com.example.waterquality"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "859144376177-74hfouribsopinhb995ihc3v25coe4mk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.waterquality",
+            "certificate_hash": "42deb30d5bf77187c9909ba9fb24f69d447ea68e"
+          }
+        },
+        {
+          "client_id": "859144376177-ct0r570701ti57i5ubfljnajscb3ugo4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4cl3bsjCIognsPWCrFzZOEnjKmY5NXxE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "859144376177-ct0r570701ti57i5ubfljnajscb3ugo4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
