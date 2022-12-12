@@ -1,6 +1,7 @@
 package com.example.waterquality
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -13,7 +14,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import models.User2
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity() , Communicator {
     private lateinit var binding: ActivityMainBinding
     private lateinit var mAuth: FirebaseAuth
     private lateinit var actionBarDrawerToggle: ActionBarDrawerToggle
@@ -68,5 +69,17 @@ class MainActivity : AppCompatActivity() {
         transaction.replace(R.id.frame, fragment)
         transaction.commit()
         binding.drawer.closeDrawers()
+    }
+
+    override fun passUri(uri: String) {
+        val bundle = Bundle()
+        bundle.putString("url",uri)
+        val trans = this.supportFragmentManager.beginTransaction()
+
+        val frag2 = AnalysisFragment()
+
+        frag2.arguments = bundle
+        trans.replace(binding.frame.id,frag2)
+        trans.commit()
     }
 }

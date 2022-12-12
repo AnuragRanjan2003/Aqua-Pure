@@ -3,17 +3,30 @@ package com.example.waterquality
 import android.app.Activity
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log.d
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.MimeTypeMap
+import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.example.waterquality.databinding.FragmentImageBinding
+import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.storage.FirebaseStorage
+import viewModels.ImageFragmentViewModel
 import java.io.File
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -33,6 +46,11 @@ class ImageFragment : Fragment() {
     private var param2: String? = null
     private lateinit var photoFile: File
     private lateinit var binding: FragmentImageBinding
+    private lateinit var fuser: FirebaseUser
+    private lateinit var storage: FirebaseStorage
+    private lateinit var viewModel: ImageFragmentViewModel
+    private lateinit var communicator: Communicator
+    private var uri: Uri? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,13 +60,15 @@ class ImageFragment : Fragment() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         // Inflate the layout for this fragment
         binding = FragmentImageBinding.inflate(inflater, container, false)
-
+        communicator = activity as Communicator
+        viewModel = ViewModelProvider(this)[ImageFragmentViewModel::class.java]
         binding.cameraBtn.setOnClickListener {
             val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             photoFile = getPhotoFile(FILE_NAME)
@@ -64,10 +84,39 @@ class ImageFragment : Fragment() {
 
         }
 
+        storage = FirebaseStorage.getInstance()
+        fuser = FirebaseAuth.getInstance().currentUser!!
+
         binding.galleryBtn.setOnClickListener {
             val intent = Intent(Intent.ACTION_PICK)
             intent.type = "image/*"
             startActivityForResult(intent, 101)
+        }
+
+        binding.analyzeBtn.setOnClickListener {
+            binding.pb.visibility = View.VISIBLE
+            if (uri == null) {
+                snackBar("No Image")
+                binding.pb.visibility = View.GONE
+                return@setOnClickListener
+            } else {
+                val ref = storage.getReference(
+                    "posts/" + fuser.uid + "/" + getName() + "." + getFileExtension(uri!!)
+                )
+                ref.putFile(uri!!).addOnSuccessListener {
+                    binding.pb.visibility = View.GONE
+                    ref.downloadUrl.addOnSuccessListener {
+                        communicator.passUri(it.toString())
+                    }.addOnFailureListener { d("Error",it.message.toString()) }
+                }
+                    .addOnFailureListener {
+                        binding.pb.visibility = View.GONE
+                        snackBar(it.message.toString())
+                    }
+
+
+            }
+
         }
         return binding.root
     }
@@ -102,8 +151,27 @@ class ImageFragment : Fragment() {
         if (requestCode == 100 && resultCode == Activity.RESULT_OK) {
             Glide.with(this).load(BitmapFactory.decodeFile(photoFile.absolutePath))
                 .into(binding.imageView)
+            uri = data?.data
         } else if (requestCode == 101 && resultCode == Activity.RESULT_OK) {
             Glide.with(this).load(data?.data).into(binding.imageView)
+            uri = data?.data
         } else super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    private fun snackBar(text: String) {
+        Snackbar.make(binding.layout, text, Snackbar.LENGTH_LONG).show()
+
+    }
+
+    private fun getFileExtension(uri: Uri): String? {
+        val cr = activity?.contentResolver
+        val map = MimeTypeMap.getSingleton()
+        return map.getExtensionFromMimeType(cr?.getType(uri))
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun getName(): String {
+        val formater = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+        return LocalDateTime.now().format(formater)
     }
 }
