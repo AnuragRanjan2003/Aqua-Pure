@@ -4,7 +4,6 @@ import android.util.Log.d
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import models.colorApi.Colors
 import models.colorApi.Response
 import repo.ColorApiInstance
 import retrofit2.Call
@@ -13,10 +12,10 @@ import retrofit2.Callback
 private const val API_USER = "432909989"
 private const val API_SECRET = "ygsuZ7ipGQuyDrYFLAqU"
 
-class ImageFragmentViewModel : ViewModel() {
-    private val colors: MutableLiveData<Colors> by lazy { MutableLiveData<Colors>() }
+class AnalysisFragmentViewModel : ViewModel() {
+    private val response: MutableLiveData<Response> by lazy { MutableLiveData<Response>() }
 
-    fun getColors(imageUrl: String) {
+    fun getResponse(imageUrl: String) {
 
         ColorApiInstance.api.getResult(imageUrl, "properties", API_USER, API_SECRET)
             .enqueue(object : Callback<Response?> {
@@ -25,7 +24,7 @@ class ImageFragmentViewModel : ViewModel() {
                     response: retrofit2.Response<Response?>
                 ) {
                     if (response.body() != null && response.body()?.status == "success")
-                        colors.value = response.body()!!.colors
+                        this@AnalysisFragmentViewModel.response.value = response.body()!!
                     else return
                 }
 
@@ -35,7 +34,7 @@ class ImageFragmentViewModel : ViewModel() {
             })
     }
 
-    fun observeColors():LiveData<Colors>{
-        return colors
+    fun observeResponse(): LiveData<Response> {
+        return response
     }
 }

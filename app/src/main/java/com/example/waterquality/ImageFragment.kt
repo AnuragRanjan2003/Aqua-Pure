@@ -15,6 +15,7 @@ import android.view.ViewGroup
 import android.webkit.MimeTypeMap
 import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
@@ -23,7 +24,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.storage.FirebaseStorage
-import viewModels.ImageFragmentViewModel
+import viewModels.AnalysisFragmentViewModel
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -48,7 +49,7 @@ class ImageFragment : Fragment() {
     private lateinit var binding: FragmentImageBinding
     private lateinit var fuser: FirebaseUser
     private lateinit var storage: FirebaseStorage
-    private lateinit var viewModel: ImageFragmentViewModel
+    private lateinit var viewModel: AnalysisFragmentViewModel
     private lateinit var communicator: Communicator
     private var uri: Uri? = null
 
@@ -68,7 +69,7 @@ class ImageFragment : Fragment() {
         // Inflate the layout for this fragment
         binding = FragmentImageBinding.inflate(inflater, container, false)
         communicator = activity as Communicator
-        viewModel = ViewModelProvider(this)[ImageFragmentViewModel::class.java]
+        viewModel = ViewModelProvider(this)[AnalysisFragmentViewModel::class.java]
         binding.cameraBtn.setOnClickListener {
             val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             photoFile = getPhotoFile(FILE_NAME)
@@ -151,7 +152,7 @@ class ImageFragment : Fragment() {
         if (requestCode == 100 && resultCode == Activity.RESULT_OK) {
             Glide.with(this).load(BitmapFactory.decodeFile(photoFile.absolutePath))
                 .into(binding.imageView)
-            uri = data?.data
+            uri = photoFile.toUri()
         } else if (requestCode == 101 && resultCode == Activity.RESULT_OK) {
             Glide.with(this).load(data?.data).into(binding.imageView)
             uri = data?.data

@@ -10,6 +10,7 @@
     <color name="grey">#D5808080</color>
     <color name="grey_dark">#D5424141</color>
     <color name="primary">#006bff</color>
+    <color name="faintBlue">#CDE8F1</color>
     <color name="primaryVariant">#1327a0</color>
     <color name="secondary">#001f43</color>
     <color name="secondaryVariant">#000024</color>

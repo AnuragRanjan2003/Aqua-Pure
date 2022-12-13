@@ -1,11 +1,23 @@
 package com.example.waterquality
 
+import android.graphics.drawable.Drawable
 import android.os.Bundle
-import androidx.fragment.app.Fragment
+import android.util.Log.d
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import com.example.waterquality.databinding.FragmentAnalysisBinding
+import models.colorApi.Dominant
+import models.colorApi.Response
+import viewModels.AnalysisFragmentViewModel
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -22,6 +34,9 @@ class AnalysisFragment : Fragment() {
     private var param1: String? = null
     private var param2: String? = null
     private lateinit var binding: FragmentAnalysisBinding
+    private lateinit var url: String
+    private lateinit var viewModel: AnalysisFragmentViewModel
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,12 +49,53 @@ class AnalysisFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
-        binding = FragmentAnalysisBinding.inflate(inflater,container,false)
+        binding = FragmentAnalysisBinding.inflate(inflater, container, false)
+        viewModel = ViewModelProvider(this)[AnalysisFragmentViewModel::class.java]
 
-        binding.textTest.text = arguments?.getString("url")
+        url = arguments?.getString("url")!!
+        Glide.with(this).load(url).listener(object : RequestListener<Drawable?> {
+            override fun onLoadFailed(
+                e: GlideException?,
+                model: Any?,
+                target: Target<Drawable?>?,
+                isFirstResource: Boolean
+            ): Boolean {
+                TODO("Not yet implemented")
+            }
+
+            override fun onResourceReady(
+                resource: Drawable?,
+                model: Any?,
+                target: Target<Drawable?>?,
+                dataSource: DataSource?,
+                isFirstResource: Boolean
+            ): Boolean {
+                binding.pbImg.visibility = View.INVISIBLE
+                return false
+            }
+        }).into(binding.image)
+
+
+        viewModel.getResponse(url)
+        viewModel.observeResponse().observe(viewLifecycleOwner, Observer { t -> putValues(t) })
+
+        d("url", arguments?.getString("url")!!)
         return binding.root
+    }
+
+    private fun putValues(response: Response) {
+        d("brg", response.brightness.toString())
+        //setting values
+        binding.tvRgb.text = getRgbString(response.colors.dominant)
+        binding.tvBrg.text = response.brightness.toString()
+        binding.tvDw.text = ""
+
+        //pb
+        binding.pb1.visibility = View.INVISIBLE
+        binding.pb2.visibility = View.INVISIBLE
+        binding.pb3.visibility = View.INVISIBLE
     }
 
     companion object {
@@ -60,5 +116,9 @@ class AnalysisFragment : Fragment() {
                     putString(ARG_PARAM2, param2)
                 }
             }
+    }
+
+    private fun getRgbString(dominant: Dominant): String {
+        return "( " + dominant.r.toString() + ", " + dominant.g.toString() + ", " + dominant.b.toString() + " )"
     }
 }
