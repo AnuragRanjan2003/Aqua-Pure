@@ -1,43 +1,56 @@
 package com.example.waterquality
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
+import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.example.waterquality.databinding.ActivityMainBinding
-import com.example.waterquality.databinding.NavHeaderBinding
+import com.google.android.material.navigation.NavigationView
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import models.User2
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import de.hdodenhof.circleimageview.CircleImageView
+import models.User
 
-class MainActivity : AppCompatActivity() , Communicator {
+class MainActivity : AppCompatActivity(), Communicator {
     private lateinit var binding: ActivityMainBinding
     private lateinit var mAuth: FirebaseAuth
     private lateinit var actionBarDrawerToggle: ActionBarDrawerToggle
-    private lateinit var header: NavHeaderBinding
+    private lateinit var header: View
+    private lateinit var dataRef : DatabaseReference
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
-        header = NavHeaderBinding.inflate(layoutInflater)
         setContentView(binding.root)
         mAuth = FirebaseAuth.getInstance()
+        val nav = findViewById<NavigationView>(R.id.nav)
+        header = nav.getHeaderView(0)
         val user: FirebaseUser = mAuth.currentUser!!
+        dataRef = FirebaseDatabase.getInstance().getReference("users").child(user.uid)
         actionBarDrawerToggle =
             ActionBarDrawerToggle(this, binding.drawer, R.string.nav_open, R.string.nav_close)
         binding.drawer.addDrawerListener(actionBarDrawerToggle)
         actionBarDrawerToggle.syncState()
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
+        dataRef.get().addOnSuccessListener {
+            val user2 = it.getValue(User::class.java)!!
+            setViewData(user2)
 
-        val user2 =
-            User2(user.displayName.toString(), user.email.toString(), user.photoUrl, user.uid)
+        }
+            .addOnFailureListener {
+                Snackbar.make(binding.root,it.message.toString(),Snackbar.LENGTH_LONG).show()
+            }
 
-        header.userdata = user2
-        Glide.with(this).load(user2.photo).into(header.profileImage)
+
+
 
         switchFragment(InfoFragment())
         binding.nav.setNavigationItemSelectedListener {
@@ -49,6 +62,12 @@ class MainActivity : AppCompatActivity() , Communicator {
             true
         }
 
+    }
+
+    private fun setViewData(user: User) {
+        header.findViewById<TextView>(R.id.head_name).text = user.name
+        header.findViewById<TextView>(R.id.head_email).text = user.email
+        Glide.with(this).load(user.imageUrl).into(header.findViewById<CircleImageView>(R.id.head_profile_image))
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -73,13 +92,15 @@ class MainActivity : AppCompatActivity() , Communicator {
 
     override fun passUri(uri: String) {
         val bundle = Bundle()
-        bundle.putString("url",uri)
+        bundle.putString("url", uri)
         val trans = this.supportFragmentManager.beginTransaction()
 
         val frag2 = AnalysisFragment()
 
         frag2.arguments = bundle
-        trans.replace(binding.frame.id,frag2)
+        trans.replace(binding.frame.id, frag2)
         trans.commit()
     }
+
+
 }

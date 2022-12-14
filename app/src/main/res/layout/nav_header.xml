@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
         <variable
             name="Userdata"
-            type="models.User2" />
+            type="models.User" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -15,40 +16,40 @@
         android:paddingBottom="20dp">
 
         <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/profile_image"
+            android:id="@+id/head_profile_image"
             android:layout_width="96dp"
             android:layout_height="96dp"
-            android:layout_marginStart="15dp"
             android:layout_marginTop="15dp"
             android:src="@drawable/ic_launcher_background"
             app:civ_border_color="@color/white"
             app:civ_border_width="1dp"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/name"
+            android:id="@+id/head_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="@{Userdata.name}"
-            android:textSize="24sp"
+            android:text="name"
             android:textColor="@color/white"
-            app:layout_constraintEnd_toEndOf="@+id/profile_image"
-            app:layout_constraintStart_toStartOf="@+id/profile_image"
-            app:layout_constraintTop_toBottomOf="@+id/profile_image" />
+            android:textSize="24sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/head_profile_image" />
 
         <TextView
-
+            android:id="@+id/head_email"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="40dp"
-            android:text="@{Userdata.email}"
             android:textColor="@color/white"
             android:textSize="20sp"
-            app:layout_constraintEnd_toEndOf="@+id/name"
-            app:layout_constraintStart_toStartOf="@+id/name"
-            app:layout_constraintTop_toBottomOf="@+id/profile_image" />
+            android:text="email"
+            app:layout_constraintEnd_toEndOf="@+id/head_name"
+            app:layout_constraintStart_toStartOf="@+id/head_name"
+            app:layout_constraintTop_toBottomOf="@+id/head_profile_image" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

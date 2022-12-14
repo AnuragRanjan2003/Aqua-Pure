@@ -17,7 +17,9 @@ import com.bumptech.glide.request.target.Target
 import com.example.waterquality.databinding.FragmentAnalysisBinding
 import models.colorApi.Dominant
 import models.colorApi.Response
+import models.processedInfo
 import viewModels.AnalysisFragmentViewModel
+import kotlin.math.round
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -80,8 +82,10 @@ class AnalysisFragment : Fragment() {
 
         viewModel.getResponse(url)
         viewModel.observeResponse().observe(viewLifecycleOwner, Observer { t -> putValues(t) })
+        viewModel.observeInfo().observe(viewLifecycleOwner, Observer { t -> putValues(t) })
 
         d("url", arguments?.getString("url")!!)
+
         return binding.root
     }
 
@@ -90,12 +94,23 @@ class AnalysisFragment : Fragment() {
         //setting values
         binding.tvRgb.text = getRgbString(response.colors.dominant)
         binding.tvBrg.text = response.brightness.toString()
-        binding.tvDw.text = ""
+
 
         //pb
         binding.pb1.visibility = View.INVISIBLE
         binding.pb2.visibility = View.INVISIBLE
+
+    }
+
+    private fun putValues(info: processedInfo) {
+        d("cdw", formatWL(info.cdw))
+        //setting values
+        binding.tvDw.text = formatWL(info.dw)
+
+
+        //pb
         binding.pb3.visibility = View.INVISIBLE
+
     }
 
     companion object {
@@ -121,4 +136,9 @@ class AnalysisFragment : Fragment() {
     private fun getRgbString(dominant: Dominant): String {
         return "( " + dominant.r.toString() + ", " + dominant.g.toString() + ", " + dominant.b.toString() + " )"
     }
+    private fun formatWL(d: Double):String{
+        return round(d).toInt().toString()+" nm"
+    }
+
+
 }

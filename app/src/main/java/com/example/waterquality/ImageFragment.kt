@@ -14,6 +14,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.webkit.MimeTypeMap
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
@@ -24,6 +25,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.storage.FirebaseStorage
+import ui.ProgressButton
 import viewModels.AnalysisFragmentViewModel
 import java.io.File
 import java.time.LocalDateTime
@@ -52,6 +54,8 @@ class ImageFragment : Fragment() {
     private lateinit var viewModel: AnalysisFragmentViewModel
     private lateinit var communicator: Communicator
     private var uri: Uri? = null
+    private lateinit var pbtn: View
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,6 +73,9 @@ class ImageFragment : Fragment() {
         // Inflate the layout for this fragment
         binding = FragmentImageBinding.inflate(inflater, container, false)
         communicator = activity as Communicator
+
+        pbtn = binding.root.findViewById(R.id.analyze_btn)
+
         viewModel = ViewModelProvider(this)[AnalysisFragmentViewModel::class.java]
         binding.cameraBtn.setOnClickListener {
             val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
@@ -94,31 +101,38 @@ class ImageFragment : Fragment() {
             startActivityForResult(intent, 101)
         }
 
-        binding.analyzeBtn.setOnClickListener {
-            binding.pb.visibility = View.VISIBLE
+
+
+
+        pbtn.setOnClickListener {
+            val progressBtn = ProgressButton((activity as AppCompatActivity).applicationContext,pbtn, "Analyse")
+            progressBtn.activateButton()
             if (uri == null) {
                 snackBar("No Image")
-                binding.pb.visibility = View.GONE
+                progressBtn.deactivateButton()
                 return@setOnClickListener
             } else {
                 val ref = storage.getReference(
                     "posts/" + fuser.uid + "/" + getName() + "." + getFileExtension(uri!!)
                 )
                 ref.putFile(uri!!).addOnSuccessListener {
-                    binding.pb.visibility = View.GONE
                     ref.downloadUrl.addOnSuccessListener {
+                        progressBtn.finish()
                         communicator.passUri(it.toString())
-                    }.addOnFailureListener { d("Error",it.message.toString()) }
+                    }.addOnFailureListener {
+                        progressBtn.deactivateButton()
+                        d("Error", it.message.toString()) }
                 }
                     .addOnFailureListener {
-                        binding.pb.visibility = View.GONE
+                        progressBtn.deactivateButton()
                         snackBar(it.message.toString())
                     }
 
 
             }
-
         }
+
+
         return binding.root
     }
 
