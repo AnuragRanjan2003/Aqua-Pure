@@ -1,6 +1,6 @@
 package viewModels
 
-import android.util.Log.d
+import android.util.Log.e
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -30,11 +30,11 @@ class AnalysisFragmentViewModel : ViewModel() {
                     if (response.body() != null && response.body()?.status == "success") {
                         this@AnalysisFragmentViewModel.response.value = response.body()!!
                         processInfo(response.body()!!)
-                    }else return
+                    } else return
                 }
 
                 override fun onFailure(call: Call<Response?>, t: Throwable) {
-                    d("Api_error", t.message.toString())
+                    e("Api_error", t.message.toString())
                 }
             })
     }
@@ -50,11 +50,14 @@ class AnalysisFragmentViewModel : ViewModel() {
             255 - response.colors.dominant.g,
             255 - response.colors.dominant.b
         ).getHue()
+        e("dhue", dhue.toString())
+        e("chue", chue.toString())
         val dw = HuetoWL(dhue).computeWl()
         val cdw = HuetoWL(chue).computeWl()
-        processedInfo.value = processedInfo(dw ,cdw ,0.00 ,0.00)
+        processedInfo.value = processedInfo(dw, cdw, 0.00, 0.00)
     }
-    fun observeInfo():LiveData<processedInfo>{
+
+    fun observeInfo(): LiveData<processedInfo> {
         return processedInfo
     }
 

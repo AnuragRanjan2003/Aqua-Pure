@@ -7,6 +7,7 @@
 
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="scan_heading" >Scan\nwater  </string>
+    <string name="alert_content" >Please make sure that colour of water is clearly visible in the Image.\nFor best results avoid having any unnecessary items in the image to be processed.</string>
     <!-- string array for analysis rec-->
 
 </resources>

@@ -64,7 +64,8 @@ class AnalysisFragment : Fragment() {
                 target: Target<Drawable?>?,
                 isFirstResource: Boolean
             ): Boolean {
-                TODO("Not yet implemented")
+                Glide.with(this@AnalysisFragment).load(R.drawable.img_place_holder).into(binding.image)
+                return false
             }
 
             override fun onResourceReady(

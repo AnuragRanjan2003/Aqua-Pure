@@ -1,8 +1,11 @@
 package com.example.waterquality
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -15,6 +18,7 @@ import android.view.ViewGroup
 import android.webkit.MimeTypeMap
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatButton
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
@@ -55,6 +59,7 @@ class ImageFragment : Fragment() {
     private lateinit var communicator: Communicator
     private var uri: Uri? = null
     private lateinit var pbtn: View
+    private lateinit var dialog: AlertDialog
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,7 +80,13 @@ class ImageFragment : Fragment() {
         communicator = activity as Communicator
 
         pbtn = binding.root.findViewById(R.id.analyze_btn)
+        makeDialog()
 
+        dialog.show()
+
+        dialog.findViewById<AppCompatButton>(R.id.ad_ok).setOnClickListener {
+            dialog.dismiss()
+        }
         viewModel = ViewModelProvider(this)[AnalysisFragmentViewModel::class.java]
         binding.cameraBtn.setOnClickListener {
             val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
@@ -105,7 +116,8 @@ class ImageFragment : Fragment() {
 
 
         pbtn.setOnClickListener {
-            val progressBtn = ProgressButton((activity as AppCompatActivity).applicationContext,pbtn, "Analyse")
+            val progressBtn =
+                ProgressButton((activity as AppCompatActivity).applicationContext, pbtn, "Analyse")
             progressBtn.activateButton()
             if (uri == null) {
                 snackBar("No Image")
@@ -121,7 +133,8 @@ class ImageFragment : Fragment() {
                         communicator.passUri(it.toString())
                     }.addOnFailureListener {
                         progressBtn.deactivateButton()
-                        d("Error", it.message.toString()) }
+                        d("Error", it.message.toString())
+                    }
                 }
                     .addOnFailureListener {
                         progressBtn.deactivateButton()
@@ -188,5 +201,15 @@ class ImageFragment : Fragment() {
     private fun getName(): String {
         val formater = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
         return LocalDateTime.now().format(formater)
+    }
+
+    private fun makeDialog() {
+        val view = LayoutInflater.from((activity as AppCompatActivity))
+            .inflate(R.layout.image_alert_dialog, null)
+        dialog = AlertDialog.Builder((activity as AppCompatActivity)).setView(view).create()
+        dialog.window?.attributes?.windowAnimations = R.style.fadeAnim
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.setCancelable(false)
+
     }
 }
