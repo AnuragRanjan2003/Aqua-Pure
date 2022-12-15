@@ -4,5 +4,5 @@ import android.net.Uri
 
 interface Communicator {
 
-    fun passUri(uri: String)
+    fun passUri(url: String,uri: Uri)
 }

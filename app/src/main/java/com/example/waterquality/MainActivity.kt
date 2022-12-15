@@ -1,6 +1,7 @@
 package com.example.waterquality
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
@@ -90,9 +91,10 @@ class MainActivity : AppCompatActivity(), Communicator {
         binding.drawer.closeDrawers()
     }
 
-    override fun passUri(uri: String) {
+    override fun passUri(url: String, uri: Uri) {
         val bundle = Bundle()
-        bundle.putString("url", uri)
+        bundle.putString("url", url)
+        bundle.putString("uri",uri.toString())
         val trans = this.supportFragmentManager.beginTransaction()
 
         val frag2 = AnalysisFragment()

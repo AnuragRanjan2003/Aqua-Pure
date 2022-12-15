@@ -35,8 +35,7 @@ import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
+
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 
@@ -75,11 +74,12 @@ class ImageFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Inflate the layout for this fragment
+
         binding = FragmentImageBinding.inflate(inflater, container, false)
         communicator = activity as Communicator
 
         pbtn = binding.root.findViewById(R.id.analyze_btn)
+
         makeDialog()
 
         dialog.show()
@@ -130,7 +130,7 @@ class ImageFragment : Fragment() {
                 ref.putFile(uri!!).addOnSuccessListener {
                     ref.downloadUrl.addOnSuccessListener {
                         progressBtn.finish()
-                        communicator.passUri(it.toString())
+                        communicator.passUri(it.toString(),uri!!)
                     }.addOnFailureListener {
                         progressBtn.deactivateButton()
                         d("Error", it.message.toString())
@@ -156,15 +156,7 @@ class ImageFragment : Fragment() {
 
 
     companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment ImageFragment.
-         */
-        // TODO: Rename and change types and number of parameters
+
         @JvmStatic
         fun newInstance(param1: String, param2: String) =
             ImageFragment().apply {
@@ -199,8 +191,8 @@ class ImageFragment : Fragment() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun getName(): String {
-        val formater = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
-        return LocalDateTime.now().format(formater)
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+        return LocalDateTime.now().format(formatter)
     }
 
     private fun makeDialog() {

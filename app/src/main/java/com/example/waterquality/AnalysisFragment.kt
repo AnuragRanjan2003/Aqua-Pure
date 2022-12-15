@@ -1,11 +1,16 @@
 package com.example.waterquality
 
+import android.app.AlertDialog
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log.d
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -19,6 +24,8 @@ import models.colorApi.Dominant
 import models.colorApi.Response
 import models.processedInfo
 import viewModels.AnalysisFragmentViewModel
+import java.math.RoundingMode
+import java.text.DecimalFormat
 import kotlin.math.round
 
 // TODO: Rename parameter arguments, choose names that match
@@ -37,7 +44,9 @@ class AnalysisFragment : Fragment() {
     private var param2: String? = null
     private lateinit var binding: FragmentAnalysisBinding
     private lateinit var url: String
+    private lateinit var uri: Uri
     private lateinit var viewModel: AnalysisFragmentViewModel
+    private lateinit var dialog: AlertDialog
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,11 +61,11 @@ class AnalysisFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Inflate the layout for this fragment
         binding = FragmentAnalysisBinding.inflate(inflater, container, false)
         viewModel = ViewModelProvider(this)[AnalysisFragmentViewModel::class.java]
 
         url = arguments?.getString("url")!!
+        uri = Uri.parse(arguments?.getString("uri"))
         Glide.with(this).load(url).listener(object : RequestListener<Drawable?> {
             override fun onLoadFailed(
                 e: GlideException?,
@@ -64,7 +73,8 @@ class AnalysisFragment : Fragment() {
                 target: Target<Drawable?>?,
                 isFirstResource: Boolean
             ): Boolean {
-                Glide.with(this@AnalysisFragment).load(R.drawable.img_place_holder).into(binding.image)
+                Glide.with(this@AnalysisFragment).load(R.drawable.img_place_holder)
+                    .into(binding.image)
                 return false
             }
 
@@ -80,14 +90,32 @@ class AnalysisFragment : Fragment() {
             }
         }).into(binding.image)
 
+        makeDialog()
 
         viewModel.getResponse(url)
+        viewModel.getPrediction((activity as AppCompatActivity), uri)
         viewModel.observeResponse().observe(viewLifecycleOwner, Observer { t -> putValues(t) })
         viewModel.observeInfo().observe(viewLifecycleOwner, Observer { t -> putValues(t) })
+        viewModel.observePrediction().observe(viewLifecycleOwner, Observer { t -> putValues(t) })
 
         d("url", arguments?.getString("url")!!)
 
+        binding.imgMore.setOnClickListener {
+            dialog.show()
+        }
+
+
         return binding.root
+    }
+
+    private fun putValues(output: FloatArray) {
+        // setting the values
+        binding.tvDrk.text = formatDecimal(output[0])
+        binding.tvUnfit.text = formatDecimal(output[1])
+
+        // pb
+        binding.pbDrk.visibility = View.INVISIBLE
+        binding.pbUnfit.visibility = View.INVISIBLE
     }
 
     private fun putValues(response: Response) {
@@ -114,6 +142,28 @@ class AnalysisFragment : Fragment() {
 
     }
 
+    private fun getRgbString(dominant: Dominant): String {
+        return "( " + dominant.r.toString() + ", " + dominant.g.toString() + ", " + dominant.b.toString() + " )"
+    }
+
+    private fun formatWL(d: Double): String {
+        return round(d).toInt().toString() + " nm"
+    }
+
+    private fun formatDecimal(num: Float):String{
+        val df = DecimalFormat("##.##")
+        df.roundingMode = RoundingMode.CEILING
+        return df.format(num)
+    }
+
+    private fun makeDialog() {
+        val view = LayoutInflater.from((activity as AppCompatActivity))
+            .inflate(R.layout.more_alert_dialog, null)
+        dialog = AlertDialog.Builder(activity as AppCompatActivity).setView(view).create()
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.window?.attributes?.windowAnimations = R.style.fadeAnim
+    }
+
     companion object {
         /**
          * Use this factory method to create a new instance of
@@ -132,13 +182,6 @@ class AnalysisFragment : Fragment() {
                     putString(ARG_PARAM2, param2)
                 }
             }
-    }
-
-    private fun getRgbString(dominant: Dominant): String {
-        return "( " + dominant.r.toString() + ", " + dominant.g.toString() + ", " + dominant.b.toString() + " )"
-    }
-    private fun formatWL(d: Double):String{
-        return round(d).toInt().toString()+" nm"
     }
 
 
