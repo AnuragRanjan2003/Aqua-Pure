@@ -74,10 +74,10 @@ class AnalysisFragmentViewModel : ViewModel() {
         var bitmap: Bitmap? = null
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                val source = ImageDecoder.createSource(context.contentResolver, uri!!)
+                val source = ImageDecoder.createSource(context.contentResolver, uri)
                 bitmap = ImageDecoder.decodeBitmap(source)
             } else {
-                bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, uri!!)
+                bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
             }
         } catch (e: Exception) {
             println("Could not convert image to BitMap")

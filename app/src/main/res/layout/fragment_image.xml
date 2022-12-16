@@ -12,14 +12,15 @@
         android:layout_height="match_parent">
 
         <TextView
+            android:id="@+id/textView7"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/scan_heading"
-            android:textSize="30sp"
-            android:fontFamily="@font/baloo_chettan"
             android:layout_marginStart="20dp"
-            android:textColor="@color/primaryVariant"
             android:layout_marginTop="10dp"
+            android:fontFamily="@font/baloo_chettan"
+            android:text="@string/scan_heading"
+            android:textColor="@color/primaryVariant"
+            android:textSize="30sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -27,18 +28,19 @@
         <ImageView
             android:id="@+id/imageView"
             android:layout_width="300dp"
-            android:layout_height="400dp"
-            android:layout_marginTop="50dp"
+            android:layout_height="300dp"
             android:src="@drawable/img_place_holder"
+            android:layout_marginTop="10dp"
+            android:scaleType="centerCrop"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/textView7" />
 
         <LinearLayout
             android:id="@+id/linearLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="50dp"
+            android:layout_marginTop="70dp"
             android:gravity="center"
             android:orientation="horizontal"
             app:layout_constraintEnd_toEndOf="@+id/imageView"

@@ -42,6 +42,7 @@ class ProgressButton(context: Context, view: View, title: String) {
         pb.visibility = View.GONE
         cardView.visibility = View.GONE
     }
+
     private fun dptoInt(dps : Int):Int{
         val scale: Float = ct.resources.displayMetrics.density
         val pixels = (dps * scale + 0.5f).toInt()

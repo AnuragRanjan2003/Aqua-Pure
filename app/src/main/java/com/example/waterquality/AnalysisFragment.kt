@@ -23,9 +23,8 @@ import com.example.waterquality.databinding.FragmentAnalysisBinding
 import models.colorApi.Dominant
 import models.colorApi.Response
 import models.processedInfo
+import ui.ReportProgressButton
 import viewModels.AnalysisFragmentViewModel
-import java.math.RoundingMode
-import java.text.DecimalFormat
 import kotlin.math.round
 
 // TODO: Rename parameter arguments, choose names that match
@@ -47,6 +46,8 @@ class AnalysisFragment : Fragment() {
     private lateinit var uri: Uri
     private lateinit var viewModel: AnalysisFragmentViewModel
     private lateinit var dialog: AlertDialog
+    private lateinit var reportDialog: AlertDialog
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -90,13 +91,13 @@ class AnalysisFragment : Fragment() {
             }
         }).into(binding.image)
 
-        makeDialog()
+        makeDialogs()
 
         viewModel.getResponse(url)
         viewModel.getPrediction((activity as AppCompatActivity), uri)
         viewModel.observeResponse().observe(viewLifecycleOwner, Observer { t -> putValues(t) })
         viewModel.observeInfo().observe(viewLifecycleOwner, Observer { t -> putValues(t) })
-        viewModel.observePrediction().observe(viewLifecycleOwner, Observer { t -> putValues(t) })
+        viewModel.observePrediction().observe(viewLifecycleOwner, Observer { t -> setStatus(t) })
 
         d("url", arguments?.getString("url")!!)
 
@@ -105,18 +106,31 @@ class AnalysisFragment : Fragment() {
         }
 
 
+        binding.reportBtn.setOnClickListener {
+            reportDialog.show()
+        }
+
+        reportDialog.setOnShowListener {
+            val reportButton: View? = reportDialog.findViewById(R.id.report_pbtn)
+            reportButton?.setOnClickListener {
+                val reportProgressButton = ReportProgressButton((activity as AppCompatActivity),reportButton)
+                reportProgressButton.activateButton()
+                reportDialog.setCancelable(false)
+                report()
+            }
+            reportDialog.setOnCancelListener {
+                reportDialog.dismiss()
+            }
+        }
+
+
+
+
+
         return binding.root
     }
 
-    private fun putValues(output: FloatArray) {
-        // setting the values
-        binding.tvDrk.text = formatDecimal(output[0])
-        binding.tvUnfit.text = formatDecimal(output[1])
-
-        // pb
-        binding.pbDrk.visibility = View.INVISIBLE
-        binding.pbUnfit.visibility = View.INVISIBLE
-    }
+    private fun report(){}
 
     private fun putValues(response: Response) {
         d("brg", response.brightness.toString())
@@ -150,18 +164,48 @@ class AnalysisFragment : Fragment() {
         return round(d).toInt().toString() + " nm"
     }
 
-    private fun formatDecimal(num: Float):String{
-        val df = DecimalFormat("##.##")
-        df.roundingMode = RoundingMode.CEILING
-        return df.format(num)
-    }
 
-    private fun makeDialog() {
+    private fun makeDialogs() {
+        //alert dialog
         val view = LayoutInflater.from((activity as AppCompatActivity))
             .inflate(R.layout.more_alert_dialog, null)
         dialog = AlertDialog.Builder(activity as AppCompatActivity).setView(view).create()
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         dialog.window?.attributes?.windowAnimations = R.style.fadeAnim
+
+        //report dialog
+        val view2= LayoutInflater.from((activity as AppCompatActivity)).inflate(R.layout.report_aler_dialog ,null)
+        reportDialog = AlertDialog.Builder((activity as AppCompatActivity)).setView(view2).create()
+        reportDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        reportDialog.window?.attributes?.windowAnimations = R.style.fadeAnim
+    }
+
+    private fun getStatus(output: FloatArray): String {
+        val ok = output[0]
+        return if (ok >= 0.95) "Drinkable"
+        else if (ok >= 0.9) "Risky"
+        else "Unfit"
+    }
+
+    private fun setStatus(output: FloatArray) {
+        val status: String = getStatus(output)
+        binding.tvStatus.text = status
+        if (status == "Risky") {
+            binding.statusCard.setBackgroundColor(
+                resources.getColor(
+                    R.color.yellow,
+                    null
+                )
+            )
+            binding.reportBtn.visibility = View.VISIBLE
+        }else if (status == "Unfit"){ binding.statusCard.setBackgroundColor(
+            resources.getColor(
+                R.color.red,
+                null
+            )
+        )
+        binding.reportBtn.visibility = View.VISIBLE
+        }
     }
 
     companion object {
