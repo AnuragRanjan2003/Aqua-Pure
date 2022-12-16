@@ -11,6 +11,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.waterquality.ml.ModelUnquant
+import models.Quality
+import models.colorApi.Dominant
 import models.colorApi.Response
 import models.interpolators.HuetoWL
 import models.interpolators.RgbtoHue
@@ -29,6 +31,7 @@ class AnalysisFragmentViewModel : ViewModel() {
     private val response: MutableLiveData<Response> by lazy { MutableLiveData<Response>() }
     private val processedInfo: MutableLiveData<processedInfo> by lazy { MutableLiveData<processedInfo>() }
     private val prediction: MutableLiveData<FloatArray> by lazy { MutableLiveData<FloatArray>() }
+    private val quality:MutableLiveData<Quality> by lazy { MutableLiveData<Quality>() }
 
     fun getResponse(imageUrl: String) {
 
@@ -41,6 +44,7 @@ class AnalysisFragmentViewModel : ViewModel() {
                     if (response.body() != null && response.body()?.status == "success") {
                         this@AnalysisFragmentViewModel.response.value = response.body()!!
                         processInfo(response.body()!!)
+                        getQuality(response.body()!!.colors.dominant)
                     } else return
                 }
 
@@ -66,6 +70,10 @@ class AnalysisFragmentViewModel : ViewModel() {
         val dw = HuetoWL(dhue).computeWl()
         val cdw = HuetoWL(chue).computeWl()
         processedInfo.value = processedInfo(dw, cdw, 0.00, 0.00)
+    }
+
+    private fun getQuality(color: Dominant){
+        TODO("predict and set the value of quality")
     }
 
     fun getPrediction(context: Context, uri: Uri) {
@@ -101,6 +109,7 @@ class AnalysisFragmentViewModel : ViewModel() {
         prediction.value = outputFeature0.floatArray
     }
 
+
     fun observeInfo(): LiveData<processedInfo> {
         return processedInfo
     }
@@ -110,5 +119,8 @@ class AnalysisFragmentViewModel : ViewModel() {
     }
     fun observePrediction():LiveData<FloatArray>{
         return prediction
+    }
+    fun observeQuality():LiveData<Quality>{
+        return quality
     }
 }

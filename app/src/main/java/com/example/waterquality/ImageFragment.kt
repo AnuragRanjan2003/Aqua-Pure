@@ -78,6 +78,9 @@ class ImageFragment : Fragment() {
         binding = FragmentImageBinding.inflate(inflater, container, false)
         communicator = activity as Communicator
 
+        val url = arguments?.getString("url")
+        if(!url.isNullOrBlank()) Glide.with(activity as AppCompatActivity).load(url).into(binding.imageView)
+
         pbtn = binding.root.findViewById(R.id.analyze_btn)
 
         makeDialog()

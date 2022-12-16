@@ -104,5 +104,15 @@ class MainActivity : AppCompatActivity(), Communicator {
         trans.commit()
     }
 
+    override fun passBackWithUrl(url: String) {
+        val bundle = Bundle()
+        bundle.putString("url",url)
+        val transaction = supportFragmentManager.beginTransaction()
+        val frag1 = ImageFragment()
+        frag1.arguments = bundle
+        transaction.replace(binding.frame.id,frag1)
+        transaction.commit()
+    }
+
 
 }

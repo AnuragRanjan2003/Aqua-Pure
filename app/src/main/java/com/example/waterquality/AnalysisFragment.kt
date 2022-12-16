@@ -1,18 +1,29 @@
 package com.example.waterquality
 
+import android.Manifest
+import android.app.Activity
 import android.app.AlertDialog
+import android.content.Context
+import android.content.Intent
+import android.content.IntentSender
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
+import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Looper
 import android.util.Log.d
+import android.util.Log.e
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -22,17 +33,29 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.example.waterquality.databinding.FragmentAnalysisBinding
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.*
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionDeniedResponse
+import com.karumi.dexter.listener.PermissionGrantedResponse
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.single.PermissionListener
+import models.Quality
 import models.Report
 import models.colorApi.Dominant
 import models.colorApi.Response
 import models.processedInfo
 import ui.ReportProgressButton
 import viewModels.AnalysisFragmentViewModel
+import java.math.RoundingMode
+import java.text.DecimalFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.round
@@ -61,6 +84,11 @@ class AnalysisFragment : Fragment() {
     private lateinit var fuser: FirebaseUser
     private var drinkable: Float = 0.00f
     private var dwl: Int = 0
+    private var long: Double = 0.00
+    private var lat: Double = 0.00
+    private var algae:Double =0.00
+    private var dirty:Double =0.00
+    private lateinit var locationRequest: LocationRequest
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -80,6 +108,11 @@ class AnalysisFragment : Fragment() {
         databaseReference = FirebaseDatabase.getInstance().getReference("Reports")
         fuser = FirebaseAuth.getInstance().currentUser!!
         viewModel = ViewModelProvider(this)[AnalysisFragmentViewModel::class.java]
+
+        locationRequest = LocationRequest.create()
+        locationRequest.priority = Priority.PRIORITY_HIGH_ACCURACY
+        locationRequest.interval = 5000
+        locationRequest.fastestInterval = 2000
 
         url = arguments?.getString("url")!!
         uri = Uri.parse(arguments?.getString("uri"))
@@ -114,6 +147,7 @@ class AnalysisFragment : Fragment() {
         viewModel.observeResponse().observe(viewLifecycleOwner, Observer { t -> putValues(t) })
         viewModel.observeInfo().observe(viewLifecycleOwner, Observer { t -> putValues(t) })
         viewModel.observePrediction().observe(viewLifecycleOwner, Observer { t -> setStatus(t) })
+        viewModel.observeQuality().observe(viewLifecycleOwner, Observer { t -> putValues(t)  })
 
         d("url", arguments?.getString("url")!!)
 
@@ -133,11 +167,16 @@ class AnalysisFragment : Fragment() {
                     ReportProgressButton((activity as AppCompatActivity), reportButton)
                 reportProgressButton.activateButton()
                 reportDialog.setCancelable(false)
-                report()
+                checkLocationPermissionAndProceed()
             }
             reportDialog.setOnCancelListener {
                 reportDialog.dismiss()
+                reportDialog.setCancelable(true)
             }
+        }
+
+        binding.backButton.setOnClickListener {
+            (activity as Communicator).passBackWithUrl(url)
         }
 
 
@@ -147,28 +186,121 @@ class AnalysisFragment : Fragment() {
         return binding.root
     }
 
+    private fun putValues(t: Quality) {
+        algae = t.algae!!
+        dirty =t.dirty!!
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     private fun report() {
-        val location = getLocation()
+        checkLocationPermissionAndProceed()
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val latS = formatToName(lat)
+        val lonS = formatToName(long)
         val report =
-            Report(fuser.uid, drinkable, dwl, LocalDate.now().format(formatter), location)
-        databaseReference.child(location).child(fuser.uid).setValue(report).addOnSuccessListener {
-            reportDialog.dismiss()
-            Snackbar.make(binding.root, "Report Submitted", Snackbar.LENGTH_SHORT).show()
-            binding.reportBtn.visibility = View.INVISIBLE
-            reportDialog.setCancelable(true)
+            Report(fuser.uid, drinkable,algae,dirty, LocalDate.now().format(formatter), lat, long)
+        if (latS.isNullOrBlank() || lonS.isNullOrBlank()) {
+            Toast.makeText(
+                (activity as AppCompatActivity),
+                "Location Could not be fetched",
+                Toast.LENGTH_SHORT
+            ).show()
+        } else {
+            databaseReference.child(latS).child(lonS).child(fuser.uid)
+                .setValue(report)
+                .addOnSuccessListener {
+                    reportDialog.dismiss()
+                    Snackbar.make(binding.root, "Report Submitted", Snackbar.LENGTH_SHORT).show()
+                    binding.reportBtn.visibility = View.INVISIBLE
+                    reportDialog.setCancelable(true)
+                }
+                .addOnFailureListener {
+                    reportDialog.dismiss()
+                    Snackbar.make(binding.root, it.message.toString(), Snackbar.LENGTH_SHORT).show()
+                    reportDialog.setCancelable(true)
+                }
         }
-            .addOnFailureListener {
-                reportDialog.dismiss()
-                Snackbar.make(binding.root, it.message.toString(), Snackbar.LENGTH_SHORT).show()
-                reportDialog.setCancelable(true)
-            }
 
     }
 
-    private fun getLocation(): String {
-        TODO("Return the location of user")
+
+    private fun getLocation() {
+        if (ActivityCompat.checkSelfPermission(
+                (activity as AppCompatActivity),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            if (isGPSOn()) {
+                LocationServices.getFusedLocationProviderClient((activity as AppCompatActivity))
+                    .requestLocationUpdates(
+                        locationRequest, object : LocationCallback() {
+                            @RequiresApi(Build.VERSION_CODES.O)
+                            override fun onLocationResult(p0: LocationResult) {
+                                super.onLocationResult(p0)
+                                LocationServices.getFusedLocationProviderClient((activity as AppCompatActivity))
+                                    .removeLocationUpdates(this)
+                                if (p0.locations.size > 0) {
+                                    val index = p0.locations.size - 1
+                                    val location = p0.locations[index]
+                                    lat = location.latitude
+                                    long = location.longitude
+                                    report()
+                                    e("Latitude", "Latitude : $lat")
+                                    e("Longitude", "Longitude : $long")
+                                }
+                            }
+                        },
+                        Looper.getMainLooper()
+                    )
+
+            } else turnOnGPS()
+        } else {
+            checkLocationPermissionAndProceed()
+        }
+        return
+
+    }
+
+    private fun isGPSOn(): Boolean {
+        var locationManager: LocationManager? = null
+        if (locationManager == null) {
+            locationManager =
+                (activity as AppCompatActivity).getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        }
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+    }
+
+    private fun turnOnGPS() {
+        val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+        builder.setAlwaysShow(true)
+
+        val request =
+            LocationServices.getSettingsClient((activity as AppCompatActivity).applicationContext)
+                .checkLocationSettings(builder.build())
+
+        request.addOnCompleteListener {
+            try {
+                val response = it.getResult(ApiException::class.java)
+            } catch (e: ResolvableApiException) {
+                when (e.statusCode) {
+                    LocationSettingsStatusCodes.RESOLUTION_REQUIRED ->
+                        try {
+                            val resolvableApiException: ResolvableApiException = e
+                            resolvableApiException.startResolutionForResult(
+                                (activity as AppCompatActivity),
+                                1
+                            )
+                        } catch (e: IntentSender.SendIntentException) {
+                            e.printStackTrace()
+                        }
+                    else -> Toast.makeText(
+                        (activity as AppCompatActivity),
+                        "no location",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
     }
 
     private fun putValues(response: Response) {
@@ -250,6 +382,37 @@ class AnalysisFragment : Fragment() {
         }
     }
 
+    private fun formatToName(num: Double): String {
+        return round(num).toInt().toString()
+    }
+
+    private fun checkLocationPermissionAndProceed() {
+        Dexter.withContext((activity as AppCompatActivity).applicationContext)
+            .withPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+            .withListener(object : PermissionListener {
+                override fun onPermissionGranted(p0: PermissionGrantedResponse?) {
+                    getLocation()
+                }
+
+                override fun onPermissionDenied(p0: PermissionDeniedResponse?) {
+                    Toast.makeText(
+                        (activity as AppCompatActivity),
+                        "Permission Needed",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    reportDialog?.dismiss()
+                }
+
+                override fun onPermissionRationaleShouldBeShown(
+                    p0: PermissionRequest?,
+                    p1: PermissionToken?
+                ) {
+                    p1?.continuePermissionRequest()
+                }
+            }).check()
+    }
+
+
     companion object {
         /**
          * Use this factory method to create a new instance of
@@ -270,5 +433,12 @@ class AnalysisFragment : Fragment() {
             }
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 1 && resultCode == Activity.RESULT_OK) {
+            Toast.makeText((activity as AppCompatActivity), "Gps On", Toast.LENGTH_SHORT).show()
+            reportDialog.show()
+        }
+    }
 
 }
