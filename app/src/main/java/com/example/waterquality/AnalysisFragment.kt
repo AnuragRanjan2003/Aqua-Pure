@@ -5,11 +5,13 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log.d
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -20,11 +22,19 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.example.waterquality.databinding.FragmentAnalysisBinding
+import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import models.Report
 import models.colorApi.Dominant
 import models.colorApi.Response
 import models.processedInfo
 import ui.ReportProgressButton
 import viewModels.AnalysisFragmentViewModel
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import kotlin.math.round
 
 // TODO: Rename parameter arguments, choose names that match
@@ -47,7 +57,10 @@ class AnalysisFragment : Fragment() {
     private lateinit var viewModel: AnalysisFragmentViewModel
     private lateinit var dialog: AlertDialog
     private lateinit var reportDialog: AlertDialog
-
+    private lateinit var databaseReference: DatabaseReference
+    private lateinit var fuser: FirebaseUser
+    private var drinkable: Float = 0.00f
+    private var dwl: Int = 0
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,11 +71,14 @@ class AnalysisFragment : Fragment() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentAnalysisBinding.inflate(inflater, container, false)
+        databaseReference = FirebaseDatabase.getInstance().getReference("Reports")
+        fuser = FirebaseAuth.getInstance().currentUser!!
         viewModel = ViewModelProvider(this)[AnalysisFragmentViewModel::class.java]
 
         url = arguments?.getString("url")!!
@@ -113,7 +129,8 @@ class AnalysisFragment : Fragment() {
         reportDialog.setOnShowListener {
             val reportButton: View? = reportDialog.findViewById(R.id.report_pbtn)
             reportButton?.setOnClickListener {
-                val reportProgressButton = ReportProgressButton((activity as AppCompatActivity),reportButton)
+                val reportProgressButton =
+                    ReportProgressButton((activity as AppCompatActivity), reportButton)
                 reportProgressButton.activateButton()
                 reportDialog.setCancelable(false)
                 report()
@@ -130,7 +147,29 @@ class AnalysisFragment : Fragment() {
         return binding.root
     }
 
-    private fun report(){}
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun report() {
+        val location = getLocation()
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val report =
+            Report(fuser.uid, drinkable, dwl, LocalDate.now().format(formatter), location)
+        databaseReference.child(location).child(fuser.uid).setValue(report).addOnSuccessListener {
+            reportDialog.dismiss()
+            Snackbar.make(binding.root, "Report Submitted", Snackbar.LENGTH_SHORT).show()
+            binding.reportBtn.visibility = View.INVISIBLE
+            reportDialog.setCancelable(true)
+        }
+            .addOnFailureListener {
+                reportDialog.dismiss()
+                Snackbar.make(binding.root, it.message.toString(), Snackbar.LENGTH_SHORT).show()
+                reportDialog.setCancelable(true)
+            }
+
+    }
+
+    private fun getLocation(): String {
+        TODO("Return the location of user")
+    }
 
     private fun putValues(response: Response) {
         d("brg", response.brightness.toString())
@@ -149,7 +188,7 @@ class AnalysisFragment : Fragment() {
         d("cdw", formatWL(info.cdw))
         //setting values
         binding.tvDw.text = formatWL(info.dw)
-
+        dwl = info.dw.toInt()
 
         //pb
         binding.pb3.visibility = View.INVISIBLE
@@ -174,7 +213,8 @@ class AnalysisFragment : Fragment() {
         dialog.window?.attributes?.windowAnimations = R.style.fadeAnim
 
         //report dialog
-        val view2= LayoutInflater.from((activity as AppCompatActivity)).inflate(R.layout.report_aler_dialog ,null)
+        val view2 = LayoutInflater.from((activity as AppCompatActivity))
+            .inflate(R.layout.report_aler_dialog, null)
         reportDialog = AlertDialog.Builder((activity as AppCompatActivity)).setView(view2).create()
         reportDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         reportDialog.window?.attributes?.windowAnimations = R.style.fadeAnim
@@ -182,6 +222,7 @@ class AnalysisFragment : Fragment() {
 
     private fun getStatus(output: FloatArray): String {
         val ok = output[0]
+        drinkable = ok
         return if (ok >= 0.95) "Drinkable"
         else if (ok >= 0.9) "Risky"
         else "Unfit"
@@ -198,13 +239,14 @@ class AnalysisFragment : Fragment() {
                 )
             )
             binding.reportBtn.visibility = View.VISIBLE
-        }else if (status == "Unfit"){ binding.statusCard.setBackgroundColor(
-            resources.getColor(
-                R.color.red,
-                null
+        } else if (status == "Unfit") {
+            binding.statusCard.setBackgroundColor(
+                resources.getColor(
+                    R.color.red,
+                    null
+                )
             )
-        )
-        binding.reportBtn.visibility = View.VISIBLE
+            binding.reportBtn.visibility = View.VISIBLE
         }
     }
 
