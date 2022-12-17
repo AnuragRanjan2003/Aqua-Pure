@@ -1,3 +1,3 @@
 package models
 
-data class Quality(val qualInd: Double?,val algae:Double?,val dirty:Double?)
+data class Quality(val qualInd: Float?, val algae: Float?, val dirty: Float?)

@@ -15,6 +15,7 @@ import models.Quality
 import models.colorApi.Dominant
 import models.colorApi.Response
 import models.interpolators.HuetoWL
+import models.interpolators.ProcessColor
 import models.interpolators.RgbtoHue
 import models.processedInfo
 import org.tensorflow.lite.DataType
@@ -26,12 +27,14 @@ import retrofit2.Callback
 
 private const val API_USER = "432909989"
 private const val API_SECRET = "ygsuZ7ipGQuyDrYFLAqU"
+private const val ALGAE_LIMIT = 0.00f
+private const val DIRT_LIMIT = 0.00f
 
 class AnalysisFragmentViewModel : ViewModel() {
     private val response: MutableLiveData<Response> by lazy { MutableLiveData<Response>() }
     private val processedInfo: MutableLiveData<processedInfo> by lazy { MutableLiveData<processedInfo>() }
     private val prediction: MutableLiveData<FloatArray> by lazy { MutableLiveData<FloatArray>() }
-    private val quality:MutableLiveData<Quality> by lazy { MutableLiveData<Quality>() }
+    private val quality: MutableLiveData<Quality> by lazy { MutableLiveData<Quality>() }
 
     fun getResponse(imageUrl: String) {
 
@@ -72,8 +75,14 @@ class AnalysisFragmentViewModel : ViewModel() {
         processedInfo.value = processedInfo(dw, cdw, 0.00, 0.00)
     }
 
-    private fun getQuality(color: Dominant){
-        TODO("predict and set the value of quality")
+    private fun getQuality(color: Dominant) {
+        val g = ProcessColor(color).computeGreen()
+        val b = ProcessColor(color).computeBrown()
+        var algae = 0.00f
+        var dirt = 0f
+        if (g >= ALGAE_LIMIT) algae = g - ALGAE_LIMIT
+        if (b >= DIRT_LIMIT) dirt = b - DIRT_LIMIT
+        quality.value = Quality(0f, algae, dirt)
     }
 
     fun getPrediction(context: Context, uri: Uri) {
@@ -91,8 +100,8 @@ class AnalysisFragmentViewModel : ViewModel() {
             println("Could not convert image to BitMap")
             e.printStackTrace()
         }
-        bitmap = Bitmap.createScaledBitmap(bitmap!! , 224 ,224 ,true)
-        bitmap = bitmap.copy(Bitmap.Config.ARGB_8888 , true)
+        bitmap = Bitmap.createScaledBitmap(bitmap!!, 224, 224, true)
+        bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true)
         val inputFeature0 =
             TensorBuffer.createFixedSize(intArrayOf(1, 224, 224, 3), DataType.FLOAT32)
         val tImg = TensorImage(DataType.FLOAT32)
@@ -117,10 +126,12 @@ class AnalysisFragmentViewModel : ViewModel() {
     fun observeResponse(): LiveData<Response> {
         return response
     }
-    fun observePrediction():LiveData<FloatArray>{
+
+    fun observePrediction(): LiveData<FloatArray> {
         return prediction
     }
-    fun observeQuality():LiveData<Quality>{
+
+    fun observeQuality(): LiveData<Quality> {
         return quality
     }
 }

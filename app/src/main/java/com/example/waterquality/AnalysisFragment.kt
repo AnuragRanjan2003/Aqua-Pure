@@ -54,10 +54,10 @@ import models.colorApi.Response
 import models.processedInfo
 import ui.ReportProgressButton
 import viewModels.AnalysisFragmentViewModel
-import java.math.RoundingMode
-import java.text.DecimalFormat
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import kotlin.math.floor
 import kotlin.math.round
 
 // TODO: Rename parameter arguments, choose names that match
@@ -86,8 +86,8 @@ class AnalysisFragment : Fragment() {
     private var dwl: Int = 0
     private var long: Double = 0.00
     private var lat: Double = 0.00
-    private var algae:Double =0.00
-    private var dirty:Double =0.00
+    private var algae: Float = 0.00f
+    private var dirty: Float = 0.00f
     private lateinit var locationRequest: LocationRequest
 
 
@@ -147,7 +147,7 @@ class AnalysisFragment : Fragment() {
         viewModel.observeResponse().observe(viewLifecycleOwner, Observer { t -> putValues(t) })
         viewModel.observeInfo().observe(viewLifecycleOwner, Observer { t -> putValues(t) })
         viewModel.observePrediction().observe(viewLifecycleOwner, Observer { t -> setStatus(t) })
-        viewModel.observeQuality().observe(viewLifecycleOwner, Observer { t -> putValues(t)  })
+        viewModel.observeQuality().observe(viewLifecycleOwner, Observer { t -> putValues(t) })
 
         d("url", arguments?.getString("url")!!)
 
@@ -188,25 +188,27 @@ class AnalysisFragment : Fragment() {
 
     private fun putValues(t: Quality) {
         algae = t.algae!!
-        dirty =t.dirty!!
+        dirty = t.dirty!!
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun report() {
         checkLocationPermissionAndProceed()
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val format = DateTimeFormatter.ofPattern("yyyy MM dd HH mm")
         val latS = formatToName(lat)
         val lonS = formatToName(long)
         val report =
-            Report(fuser.uid, drinkable,algae,dirty, LocalDate.now().format(formatter), lat, long)
-        if (latS.isNullOrBlank() || lonS.isNullOrBlank()) {
+            Report(fuser.uid, drinkable, algae, dirty, LocalDate.now().format(formatter), lat, long)
+        if (latS.isBlank() || lonS.isBlank()) {
             Toast.makeText(
                 (activity as AppCompatActivity),
                 "Location Could not be fetched",
                 Toast.LENGTH_SHORT
             ).show()
         } else {
-            databaseReference.child(latS).child(lonS).child(fuser.uid)
+            databaseReference.child(latS).child(lonS)
+                .child(fuser.uid + " " + LocalDateTime.now().format(format))
                 .setValue(report)
                 .addOnSuccessListener {
                     reportDialog.dismiss()
@@ -383,7 +385,7 @@ class AnalysisFragment : Fragment() {
     }
 
     private fun formatToName(num: Double): String {
-        return round(num).toInt().toString()
+        return floor(num).toInt().toString()
     }
 
     private fun checkLocationPermissionAndProceed() {
@@ -400,7 +402,7 @@ class AnalysisFragment : Fragment() {
                         "Permission Needed",
                         Toast.LENGTH_SHORT
                     ).show()
-                    reportDialog?.dismiss()
+                    reportDialog.dismiss()
                 }
 
                 override fun onPermissionRationaleShouldBeShown(
