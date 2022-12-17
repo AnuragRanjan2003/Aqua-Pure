@@ -1,5 +1,6 @@
 package com.example.waterquality
 
+import adapters.CasesRecyclerAdapter
 import android.Manifest
 import android.app.Activity
 import android.content.Context
@@ -7,9 +8,9 @@ import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.location.Location
-import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
+import android.util.Log.e
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,7 +18,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.waterquality.databinding.FragmentInfoBinding
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
@@ -35,6 +38,7 @@ import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
 import models.Quality
+import models.Report
 import viewModels.InfoFragmentViewModel
 import kotlin.math.floor
 
@@ -60,6 +64,9 @@ class InfoFragment : Fragment() {
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationManager: LocationManager
     private var limit: Double = 0.00
+    private lateinit var adapter: CasesRecyclerAdapter
+    private var lat: Int = -99
+    private var long: Int = -99
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,8 +87,30 @@ class InfoFragment : Fragment() {
         fUser = FirebaseAuth.getInstance().currentUser!!
         context = activity as AppCompatActivity
         locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        binding.recCases.layoutManager =
+            LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+        binding.recCases.hasFixedSize()
 
         checkLocationPermissionAndProceed()
+
+
+        if (lat != -99 && long != -99) {
+            viewModel.getResult(
+                database.getReference("Reports").child(lat.toString()).child(long.toString())
+            )
+            viewModel.limit.observe(viewLifecycleOwner) { t -> limit = t }
+            viewModel.observeQuality()
+                .observe(viewLifecycleOwner, Observer { t -> putValues(t) })
+            viewModel.observeReportList()
+                .observe(viewLifecycleOwner, Observer { t -> putValues(t) })
+        }
+
+
+        e("lat", "latitude : $lat")
+        e("long", "longitude : $long")
+
+
+
 
 
 
@@ -140,12 +169,8 @@ class InfoFragment : Fragment() {
                 locationManager.requestLocationUpdates(
                     LocationManager.GPS_PROVIDER,
                     5000,
-                    0f,
-                    object : LocationListener {
-                        override fun onLocationChanged(p0: Location) {
-                            call(p0)
-                        }
-                    })
+                    0f
+                ) { p0 -> call(p0) }
             } else turnOnGPS()
         } else {
             checkLocationPermissionAndProceed()
@@ -153,21 +178,27 @@ class InfoFragment : Fragment() {
     }
 
     private fun call(location: Location) {
-        viewModel.getResult(
-            database.getReference("Reports").child(formatToName(location.latitude))
-                .child(formatToName(location.longitude)),
-            floor(location.latitude).toInt()
-        )
-        limit = viewModel.getLimit()
-        viewModel.observeQuality().observe(viewLifecycleOwner,{ t-> putValues(t) })
+        lat = floor(location.latitude).toInt()
+        long = floor(location.longitude).toInt()
     }
 
     private fun putValues(quality: Quality?) {
-        binding.status.text = getStatus(quality)
+        if (quality != null)
+            binding.status.text = getStatus(quality)
+        else binding.status.text = "No Data"
     }
 
-    private fun getStatus(quality: Quality?): CharSequence? {
-        TODO("Not yet implemented")
+    private fun putValues(list: MutableList<Report>) {
+        binding.cases.text = list.size.toString()
+        adapter = CasesRecyclerAdapter(list, context)
+        adapter.notifyDataSetChanged()
+        binding.recCases.adapter = adapter
+
+    }
+
+    private fun getStatus(quality: Quality): String {
+        return if (quality.qualInd!! / 10000 > limit) "Good"
+        else "Not Good"
     }
 
     private fun turnOnGPS() {

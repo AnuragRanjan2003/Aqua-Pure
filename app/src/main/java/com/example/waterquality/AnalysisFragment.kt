@@ -14,12 +14,12 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Looper
 import android.util.Log.d
-import android.util.Log.e
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -78,7 +78,7 @@ class AnalysisFragment : Fragment() {
     private lateinit var url: String
     private lateinit var uri: Uri
     private lateinit var viewModel: AnalysisFragmentViewModel
-    private lateinit var dialog: AlertDialog
+    private lateinit var moredialog: AlertDialog
     private lateinit var reportDialog: AlertDialog
     private lateinit var databaseReference: DatabaseReference
     private lateinit var fuser: FirebaseUser
@@ -152,7 +152,7 @@ class AnalysisFragment : Fragment() {
         d("url", arguments?.getString("url")!!)
 
         binding.imgMore.setOnClickListener {
-            dialog.show()
+            moredialog.show()
         }
 
 
@@ -178,6 +178,14 @@ class AnalysisFragment : Fragment() {
         binding.backButton.setOnClickListener {
             (activity as Communicator).passBackWithUrl(url)
         }
+        moredialog.setOnShowListener {
+            moredialog.findViewById<TextView>(R.id.tv_algae).text = (algae * 100).toString()
+            moredialog.findViewById<TextView>(R.id.tv_dirty).text = (dirty * 100).toString()
+
+            //pb
+            moredialog.findViewById<ProgressBar>(R.id.pb_algae).visibility = View.INVISIBLE
+            moredialog.findViewById<ProgressBar>(R.id.pb_dirty).visibility = View.INVISIBLE
+        }
 
 
 
@@ -189,11 +197,12 @@ class AnalysisFragment : Fragment() {
     private fun putValues(t: Quality) {
         algae = t.algae!!
         dirty = t.dirty!!
+
+
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun report() {
-        checkLocationPermissionAndProceed()
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         val format = DateTimeFormatter.ofPattern("yyyy MM dd HH mm")
         val latS = formatToName(lat)
@@ -226,6 +235,7 @@ class AnalysisFragment : Fragment() {
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun getLocation() {
         if (ActivityCompat.checkSelfPermission(
                 (activity as AppCompatActivity),
@@ -234,26 +244,11 @@ class AnalysisFragment : Fragment() {
         ) {
             if (isGPSOn()) {
                 LocationServices.getFusedLocationProviderClient((activity as AppCompatActivity))
-                    .requestLocationUpdates(
-                        locationRequest, object : LocationCallback() {
-                            @RequiresApi(Build.VERSION_CODES.O)
-                            override fun onLocationResult(p0: LocationResult) {
-                                super.onLocationResult(p0)
-                                LocationServices.getFusedLocationProviderClient((activity as AppCompatActivity))
-                                    .removeLocationUpdates(this)
-                                if (p0.locations.size > 0) {
-                                    val index = p0.locations.size - 1
-                                    val location = p0.locations[index]
-                                    lat = location.latitude
-                                    long = location.longitude
-                                    report()
-                                    e("Latitude", "Latitude : $lat")
-                                    e("Longitude", "Longitude : $long")
-                                }
-                            }
-                        },
-                        Looper.getMainLooper()
-                    )
+                    .lastLocation.addOnSuccessListener {
+                        lat = it.latitude
+                        long = it.longitude
+                        report()
+                    }
 
             } else turnOnGPS()
         } else {
@@ -339,12 +334,12 @@ class AnalysisFragment : Fragment() {
 
 
     private fun makeDialogs() {
-        //alert dialog
+        //alert more dialog
         val view = LayoutInflater.from((activity as AppCompatActivity))
             .inflate(R.layout.more_alert_dialog, null)
-        dialog = AlertDialog.Builder(activity as AppCompatActivity).setView(view).create()
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        dialog.window?.attributes?.windowAnimations = R.style.fadeAnim
+        moredialog = AlertDialog.Builder(activity as AppCompatActivity).setView(view).create()
+        moredialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        moredialog.window?.attributes?.windowAnimations = R.style.fadeAnim
 
         //report dialog
         val view2 = LayoutInflater.from((activity as AppCompatActivity))
@@ -392,6 +387,7 @@ class AnalysisFragment : Fragment() {
         Dexter.withContext((activity as AppCompatActivity).applicationContext)
             .withPermission(Manifest.permission.ACCESS_FINE_LOCATION)
             .withListener(object : PermissionListener {
+                @RequiresApi(Build.VERSION_CODES.O)
                 override fun onPermissionGranted(p0: PermissionGrantedResponse?) {
                     getLocation()
                 }

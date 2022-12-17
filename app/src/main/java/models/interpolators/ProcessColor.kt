@@ -20,8 +20,8 @@ class ProcessColor(color: Dominant) {
     fun computeBrown(): Float {
         var r =0.00f
         var g_r =0.00f
-        val x = ((color.r + color.b) / 2).toFloat()
-        val del = color.g - x
+        val x = ((color.g + color.b) / 2).toFloat()
+        val del = color.r - x
         if (del < 0) r= -1f
         r = if (x == 0.00f) del
         else (del / x)

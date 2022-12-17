@@ -68,7 +68,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="30dp"
-                            android:text="absorbed (a_ww)"
+                            android:text="algae"
                             android:textColor="@color/black"
                             android:textSize="16sp"
                             app:layout_constraintBottom_toBottomOf="parent"
@@ -76,7 +76,7 @@
                             app:layout_constraintTop_toTopOf="parent" />
 
                         <TextView
-                            android:id="@+id/tv_aww"
+                            android:id="@+id/tv_algae"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="30dp"
@@ -88,7 +88,7 @@
                             app:layout_constraintTop_toTopOf="parent" />
 
                         <ProgressBar
-                            android:id="@+id/pb_aww"
+                            android:id="@+id/pb_algae"
                             android:layout_width="20dp"
                             android:layout_height="20dp"
                             android:layout_marginEnd="30dp"
@@ -128,7 +128,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="30dp"
-                            android:text="reflected (b_ww)"
+                            android:text="dirty"
                             android:textColor="@color/black"
                             android:textSize="16sp"
                             app:layout_constraintBottom_toBottomOf="parent"
@@ -136,7 +136,7 @@
                             app:layout_constraintTop_toTopOf="parent" />
 
                         <TextView
-                            android:id="@+id/tv_bww"
+                            android:id="@+id/tv_dirty"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="30dp"
@@ -148,7 +148,7 @@
                             app:layout_constraintTop_toTopOf="parent" />
 
                         <ProgressBar
-                            android:id="@+id/pb_bww"
+                            android:id="@+id/pb_dirty"
                             android:layout_width="20dp"
                             android:layout_height="20dp"
                             android:layout_marginEnd="30dp"
