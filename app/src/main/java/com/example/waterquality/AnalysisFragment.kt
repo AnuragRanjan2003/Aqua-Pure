@@ -200,8 +200,6 @@ class AnalysisFragment : Fragment() {
     private fun putValues(t: Quality) {
         algae = t.algae!!
         dirty = t.dirty!!
-
-
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

@@ -56,8 +56,10 @@ private const val ARG_PARAM2 = "param2"
  * create an instance of this fragment.
  */
 private const val AREA_0 = 12391.88
+private const val visible = View.VISIBLE
+private const val invisible = View.INVISIBLE
 
-class InfoFragment : Fragment() {
+class InfoFragment : Fragment(), android.location.LocationListener {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
@@ -102,6 +104,7 @@ class InfoFragment : Fragment() {
         adapter = CasesRecyclerAdapter(list, context)
         binding.recCases.adapter = adapter
         binding.recCases.hasFixedSize()
+        binding.pb.visibility = visible
         return binding.root
     }
 
@@ -154,24 +157,10 @@ class InfoFragment : Fragment() {
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             if (gpsIsOn()) {
-                LocationServices.getFusedLocationProviderClient(context).lastLocation.addOnSuccessListener {
-                    try {
-                        populateRec(it)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        try {
-                            useNetwork()
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                    }
-                }.addOnFailureListener {
-                    Toast.makeText(
-                        context,
-                        "no location",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+                locationManager.requestSingleUpdate(
+                    LocationManager.GPS_PROVIDER, this as android.location.LocationListener,
+                    Looper.getMainLooper()
+                )
             } else {
                 turnOnGPS()
             }
@@ -198,8 +187,6 @@ class InfoFragment : Fragment() {
                 5000,
                 2000f
             ) { location -> populateRec(location) }
-        } else {
-
         }
     }
 
@@ -220,6 +207,7 @@ class InfoFragment : Fragment() {
                     binding.cases.text = list.size.toString()
                     processQuality(list, floor(location.latitude).toInt())
                     adapter.notifyDataSetChanged()
+                    binding.pb.visibility = invisible
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -333,6 +321,23 @@ class InfoFragment : Fragment() {
 
     private fun formatToName(num: Double): String {
         return floor(num).toInt().toString()
+    }
+
+    override fun onLocationChanged(location: Location) {
+        try {
+            populateRec(location)
+        } catch (e: Exception) {
+            try {
+                useNetwork()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    override fun onProviderDisabled(provider: String) {
+        super.onProviderDisabled(provider)
+        handleLocation()
     }
 
 
