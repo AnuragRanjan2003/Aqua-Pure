@@ -6,5 +6,5 @@ interface Communicator {
 
     fun passUri(url: String,uri: Uri)
 
-    fun passBackWithUrl(url : String,passBack : Boolean)
+    fun passBack()
 }

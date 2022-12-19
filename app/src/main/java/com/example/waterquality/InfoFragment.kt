@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.location.Location
 import android.location.LocationManager
@@ -160,6 +159,11 @@ class InfoFragment : Fragment() {
                         populateRec(it)
                     } catch (e: Exception) {
                         e.printStackTrace()
+                        try {
+                            useNetwork()
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
                     }
                 }.addOnFailureListener {
                     Toast.makeText(
@@ -175,6 +179,32 @@ class InfoFragment : Fragment() {
             checkLocationPermissionAndProceed()
         }
 
+    }
+
+    private fun useNetwork() {
+        if (hasInternet()) {
+            if (ActivityCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return
+            }
+            locationManager.requestLocationUpdates(
+                LocationManager.NETWORK_PROVIDER,
+                5000,
+                2000f
+            ) { location -> populateRec(location) }
+        } else {
+
+        }
+    }
+
+    private fun hasInternet(): Boolean {
+        return locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
 
     private fun populateRec(location: Location) {
@@ -203,7 +233,8 @@ class InfoFragment : Fragment() {
         if (quality != null) {
             binding.status.text = getStatus(quality)
             when (getStatus(quality)) {
-                "Good" -> binding.cl.background = ColorDrawable(context.getColor(R.color.dark_green))
+                "Good" -> binding.cl.background =
+                    ColorDrawable(context.getColor(R.color.dark_green))
                 "Not Good" -> binding.cl.background = ColorDrawable(context.getColor(R.color.red))
             }
         } else binding.status.text = "No Data"

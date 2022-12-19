@@ -22,7 +22,6 @@ import androidx.appcompat.widget.AppCompatButton
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.example.waterquality.databinding.FragmentImageBinding
 import com.google.android.material.snackbar.Snackbar
@@ -30,7 +29,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.storage.FirebaseStorage
 import ui.ProgressButton
-import viewModels.AnalysisFragmentViewModel
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -54,7 +52,6 @@ class ImageFragment : Fragment() {
     private lateinit var binding: FragmentImageBinding
     private lateinit var fuser: FirebaseUser
     private lateinit var storage: FirebaseStorage
-    private lateinit var viewModel: AnalysisFragmentViewModel
     private lateinit var communicator: Communicator
     private var uri: Uri? = null
     private lateinit var pbtn: View
@@ -78,13 +75,8 @@ class ImageFragment : Fragment() {
         binding = FragmentImageBinding.inflate(inflater, container, false)
         communicator = activity as Communicator
 
-        val url = arguments?.getString("url")
-        var passBack:Boolean? = arguments?.getBoolean("passBack")
-        if(passBack==null) passBack= false
-        if (!url.isNullOrBlank() && passBack) {
-            Glide.with(activity as AppCompatActivity).load(url).into(binding.imageView)
-            uri = Uri.parse(url)
-        }
+        Glide.with(activity as AppCompatActivity).load(R.drawable.img_place_holder)
+            .into(binding.imageView)
 
         pbtn = binding.root.findViewById(R.id.analyze_btn)
 
@@ -95,7 +87,6 @@ class ImageFragment : Fragment() {
         dialog.findViewById<AppCompatButton>(R.id.ad_ok).setOnClickListener {
             dialog.dismiss()
         }
-        viewModel = ViewModelProvider(this)[AnalysisFragmentViewModel::class.java]
         binding.cameraBtn.setOnClickListener {
             val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             photoFile = getPhotoFile(FILE_NAME)

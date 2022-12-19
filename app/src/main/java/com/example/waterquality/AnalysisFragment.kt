@@ -14,6 +14,8 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.util.Log.d
 import android.view.LayoutInflater
@@ -177,7 +179,7 @@ class AnalysisFragment : Fragment() {
         }
 
         binding.backButton.setOnClickListener {
-            (activity as Communicator).passBackWithUrl(url,true)
+            (activity as Communicator).passBack()
         }
         moredialog.setOnShowListener {
             moredialog.findViewById<TextView>(R.id.tv_algae).text = (algae * 100).toString()
@@ -246,15 +248,23 @@ class AnalysisFragment : Fragment() {
             if (isGPSOn()) {
                 LocationServices.getFusedLocationProviderClient((activity as AppCompatActivity))
                     .lastLocation.addOnSuccessListener {
-                        lat = it.latitude
-                        long = it.longitude
-                        Log.e("lat", "latitude : $lat")
-                        Log.e("long", "longitude : $long")
-                        report()
+                        if (it != null) {
+                            lat = it!!.latitude
+                            long = it!!.longitude
+                            Log.e("lat", "latitude : $lat")
+                            Log.e("long", "longitude : $long")
+                            report()
+                        }else{
+                            getLocation()
+                        }
                     }
 
-            } else turnOnGPS()
+            } else {
+                reportDialog.dismiss()
+                turnOnGPS()
+            }
         } else {
+            reportDialog.dismiss()
             checkLocationPermissionAndProceed()
         }
         return
@@ -288,7 +298,16 @@ class AnalysisFragment : Fragment() {
                             val resolvableApiException: ResolvableApiException = e
                             resolvableApiException.startResolutionForResult(
                                 (activity as AppCompatActivity),
-                                1
+                                2
+                            )
+                            startIntentSenderForResult(
+                                resolvableApiException.resolution.intentSender,
+                                2,
+                                null,
+                                0,
+                                0,
+                                0,
+                                null
                             )
                         } catch (e: IntentSender.SendIntentException) {
                             e.printStackTrace()
@@ -436,9 +455,13 @@ class AnalysisFragment : Fragment() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 1 && resultCode == Activity.RESULT_OK) {
+        if (requestCode == 2 && resultCode == Activity.RESULT_OK) {
             Toast.makeText((activity as AppCompatActivity), "Gps On", Toast.LENGTH_SHORT).show()
-            reportDialog.show()
+            binding.reportBtn.visibility = View.VISIBLE
+            Handler(Looper.getMainLooper()).postDelayed({
+                checkLocationPermissionAndProceed()
+            }, 5000)
+
         }
     }
 

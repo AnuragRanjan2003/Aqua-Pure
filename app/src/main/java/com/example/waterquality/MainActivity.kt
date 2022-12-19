@@ -3,7 +3,6 @@ package com.example.waterquality
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
@@ -26,7 +25,7 @@ class MainActivity : AppCompatActivity(), Communicator {
     private lateinit var mAuth: FirebaseAuth
     private lateinit var actionBarDrawerToggle: ActionBarDrawerToggle
     private lateinit var header: View
-    private lateinit var dataRef : DatabaseReference
+    private lateinit var dataRef: DatabaseReference
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -48,7 +47,7 @@ class MainActivity : AppCompatActivity(), Communicator {
 
         }
             .addOnFailureListener {
-                Snackbar.make(binding.root,it.message.toString(),Snackbar.LENGTH_LONG).show()
+                Snackbar.make(binding.root, it.message.toString(), Snackbar.LENGTH_LONG).show()
             }
 
 
@@ -68,15 +67,12 @@ class MainActivity : AppCompatActivity(), Communicator {
 
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        return super.onPrepareOptionsMenu(menu)
-        menu?.getItem(0)?.subMenu?.getItem(1)?.isChecked=true
-    }
 
     private fun setViewData(user: User) {
         header.findViewById<TextView>(R.id.head_name).text = user.name
         header.findViewById<TextView>(R.id.head_email).text = user.email
-        Glide.with(this).load(user.imageUrl).into(header.findViewById<CircleImageView>(R.id.head_profile_image))
+        Glide.with(this).load(user.imageUrl)
+            .into(header.findViewById<CircleImageView>(R.id.head_profile_image))
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -102,7 +98,7 @@ class MainActivity : AppCompatActivity(), Communicator {
     override fun passUri(url: String, uri: Uri) {
         val bundle = Bundle()
         bundle.putString("url", url)
-        bundle.putString("uri",uri.toString())
+        bundle.putString("uri", uri.toString())
         val trans = this.supportFragmentManager.beginTransaction()
 
         val frag2 = AnalysisFragment()
@@ -112,14 +108,12 @@ class MainActivity : AppCompatActivity(), Communicator {
         trans.commit()
     }
 
-    override fun passBackWithUrl(url: String,passBack:Boolean) {
+    override fun passBack() {
         val bundle = Bundle()
-        bundle.putString("url",url)
-        bundle.putBoolean("passBack",passBack)
         val transaction = supportFragmentManager.beginTransaction()
         val frag1 = ImageFragment()
         frag1.arguments = bundle
-        transaction.replace(binding.frame.id,frag1)
+        transaction.replace(binding.frame.id, frag1)
         transaction.commit()
     }
 

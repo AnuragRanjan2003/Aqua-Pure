@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingBottom="5dp">
+    android:paddingBottom="3dp">
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
@@ -12,10 +12,10 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
-        app:cardCornerRadius="10dp"
+        app:cardCornerRadius="2dp"
         app:cardElevation="10dp"
-        android:layout_marginStart="5dp"
-        android:layout_marginEnd="5dp"
+        android:layout_marginStart="1dp"
+        android:layout_marginEnd="1dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.5">
@@ -23,9 +23,9 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:paddingStart="10dp"
+            android:paddingStart="15dp"
             android:paddingTop="10dp"
-            android:paddingEnd="10dp"
+            android:paddingEnd="15dp"
             android:paddingBottom="10dp"
             android:background="@drawable/unfilled_grey">
 
@@ -44,13 +44,12 @@
                 android:id="@+id/tv_lon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="100dp"
-                android:text="long"
                 android:fontFamily="@font/baloo_chettan"
+                android:text="long"
                 android:textColor="@color/black"
                 android:textSize="18sp"
                 app:layout_constraintBottom_toBottomOf="@+id/tv_lat"
-                app:layout_constraintStart_toEndOf="@+id/tv_lat"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/tv_lat" />
 
             <TextView

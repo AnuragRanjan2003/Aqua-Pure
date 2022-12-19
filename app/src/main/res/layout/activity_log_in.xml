@@ -7,16 +7,6 @@
     tools:context=".SignUpActivity"
     android:id="@+id/layout">
 
-    <ProgressBar
-        android:id="@+id/pbLogin"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        />
 
     <ScrollView
         android:id="@+id/scrollView2"
@@ -44,7 +34,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="20dp"
                 android:layout_marginTop="10dp"
-                android:fontFamily="@font/audiowide"
+                android:fontFamily="@font/baloo_chettan"
                 android:text="Welcome\nBack"
                 android:textColor="@color/white"
                 android:textSize="38sp" />
@@ -52,7 +42,7 @@
             <com.airbnb.lottie.LottieAnimationView
                 android:id="@+id/animation_view"
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
+                android:layout_height="180dp"
                 android:layout_gravity="center_horizontal|bottom"
                 android:layout_marginBottom="10dp"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -62,6 +52,15 @@
                 app:lottie_autoPlay="true"
                 app:lottie_loop="true"
                 app:lottie_rawRes="@raw/signup_anim" />
+            <ProgressBar
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="5dp"
+                android:visibility="gone"
+                android:layout_marginBottom="5dp"
+                android:indeterminateTint="@color/white"
+                android:id="@+id/pbLogin"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -76,7 +75,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="10dp"
-                    android:fontFamily="casual"
+                    android:fontFamily="@font/baloo_chettan"
                     android:text="Log In"
                     android:layout_marginBottom="40dp"
                     android:textColor="@color/primary"
@@ -120,6 +119,8 @@
                     android:layout_marginBottom="20dp"
                     android:background="@drawable/filled_button"
                     android:text="Log In"
+                    android:textAllCaps="false"
+                    android:fontFamily="@font/baloo_chettan"
                     android:textColor="@color/primary"
                     android:textSize="16sp" />
 

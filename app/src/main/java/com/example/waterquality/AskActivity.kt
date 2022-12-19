@@ -102,7 +102,10 @@ class AskActivity : AppCompatActivity() {
     private fun saveUserData(user: FirebaseUser) {
         val user2 = models.User(user.email, user.displayName, user.uid, user.photoUrl.toString())
         database.child(user.uid).setValue(user2)
-            .addOnSuccessListener { startActivity(Intent(this, MainActivity::class.java)) }
+            .addOnSuccessListener {
+                startActivity(Intent(this, MainActivity::class.java))
+                finishAffinity()
+            }
             .addOnFailureListener {
                 Toast.makeText(this@AskActivity, it.message, Toast.LENGTH_LONG).show()
             }
