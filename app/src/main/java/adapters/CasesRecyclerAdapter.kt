@@ -10,11 +10,14 @@ import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.example.waterquality.R
 import models.Report
+import java.math.RoundingMode
+import java.text.DecimalFormat
 import java.util.*
+import kotlin.math.floor
 
 class CasesRecyclerAdapter(list: List<Report>, context: Context) :
     RecyclerView.Adapter<CasesRecyclerAdapter.MyViewHolder>() {
-    private val list: List<Report>
+    private var list: List<Report>
     private val context: Context
 
     init {
@@ -37,17 +40,23 @@ class CasesRecyclerAdapter(list: List<Report>, context: Context) :
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
 
-        val report = list[position]
-        holder.lat.text = report.lat.toString()
-        holder.lon.text = report.lon.toString()
-        holder.date.text = report.date
-        var text = "algae"
-        if (report.algae!! < report.dirty!!) text = "dirty"
-        holder.problem.text = text
+            val report = list[position]
+            holder.lat.text = "Latitude : ${format(report.lat!!)}"
+            holder.lon.text = "Longitude : ${format(report.lon!!)}"
+            holder.date.text = "Date : ${report.date}"
+            var text = "algae"
+            if (report.algae!! < report.dirty!!) text = "dirty"
+            holder.problem.text = "Problem : $text"
+
     }
 
     override fun getItemCount(): Int {
         return list.size
+    }
+    private fun format(num : Double): String {
+        val df =DecimalFormat("##.##")
+        df.roundingMode = RoundingMode.CEILING
+        return df.format(num)
     }
 
 

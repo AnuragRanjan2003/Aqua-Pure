@@ -79,7 +79,12 @@ class ImageFragment : Fragment() {
         communicator = activity as Communicator
 
         val url = arguments?.getString("url")
-        if(!url.isNullOrBlank()) Glide.with(activity as AppCompatActivity).load(url).into(binding.imageView)
+        var passBack:Boolean? = arguments?.getBoolean("passBack")
+        if(passBack==null) passBack= false
+        if (!url.isNullOrBlank() && passBack) {
+            Glide.with(activity as AppCompatActivity).load(url).into(binding.imageView)
+            uri = Uri.parse(url)
+        }
 
         pbtn = binding.root.findViewById(R.id.analyze_btn)
 
@@ -133,7 +138,7 @@ class ImageFragment : Fragment() {
                 ref.putFile(uri!!).addOnSuccessListener {
                     ref.downloadUrl.addOnSuccessListener {
                         progressBtn.finish()
-                        communicator.passUri(it.toString(),uri!!)
+                        communicator.passUri(it.toString(), uri!!)
                     }.addOnFailureListener {
                         progressBtn.deactivateButton()
                         d("Error", it.message.toString())

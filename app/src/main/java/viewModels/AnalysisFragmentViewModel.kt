@@ -109,7 +109,7 @@ class AnalysisFragmentViewModel : ViewModel() {
         val byteBuffer = tImg.buffer
         inputFeature0.loadBuffer(byteBuffer)
 
-        // Runs model inference and gets result.
+        // Runs model and gets result.
         val outputs = model.process(inputFeature0)
         val outputFeature0 = outputs.outputFeature0AsTensorBuffer
 

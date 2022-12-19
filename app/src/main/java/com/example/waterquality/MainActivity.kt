@@ -3,6 +3,7 @@ package com.example.waterquality
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
@@ -55,6 +56,7 @@ class MainActivity : AppCompatActivity(), Communicator {
 
         switchFragment(InfoFragment())
         binding.nav.setNavigationItemSelectedListener {
+            it.isChecked = true
             when (it.itemId) {
                 R.id.home -> switchFragment(ImageFragment())
                 R.id.profile -> switchFragment(InfoFragment())
@@ -63,6 +65,12 @@ class MainActivity : AppCompatActivity(), Communicator {
             true
         }
 
+
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        return super.onPrepareOptionsMenu(menu)
+        menu?.getItem(0)?.subMenu?.getItem(1)?.isChecked=true
     }
 
     private fun setViewData(user: User) {
@@ -104,9 +112,10 @@ class MainActivity : AppCompatActivity(), Communicator {
         trans.commit()
     }
 
-    override fun passBackWithUrl(url: String) {
+    override fun passBackWithUrl(url: String,passBack:Boolean) {
         val bundle = Bundle()
         bundle.putString("url",url)
+        bundle.putBoolean("passBack",passBack)
         val transaction = supportFragmentManager.beginTransaction()
         val frag1 = ImageFragment()
         frag1.arguments = bundle

@@ -90,12 +90,22 @@ class AskActivity : AppCompatActivity() {
         val credential = GoogleAuthProvider.getCredential(account.idToken, null)
         mAuth.signInWithCredential(credential).addOnCompleteListener {
             if (it.isSuccessful) {
-                startActivity(Intent(this, MainActivity::class.java))
+                saveUserData(it.result.user!!)
+
 
             } else {
                 Toast.makeText(this, it.exception?.message, Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    private fun saveUserData(user: FirebaseUser) {
+        val user2 = models.User(user.email, user.displayName, user.uid, user.photoUrl.toString())
+        database.child(user.uid).setValue(user2)
+            .addOnSuccessListener { startActivity(Intent(this, MainActivity::class.java)) }
+            .addOnFailureListener {
+                Toast.makeText(this@AskActivity, it.message, Toast.LENGTH_LONG).show()
+            }
     }
 
     private fun checkUser() {

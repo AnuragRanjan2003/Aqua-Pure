@@ -14,6 +14,7 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.util.Log.d
 import android.view.LayoutInflater
 import android.view.View
@@ -176,7 +177,7 @@ class AnalysisFragment : Fragment() {
         }
 
         binding.backButton.setOnClickListener {
-            (activity as Communicator).passBackWithUrl(url)
+            (activity as Communicator).passBackWithUrl(url,true)
         }
         moredialog.setOnShowListener {
             moredialog.findViewById<TextView>(R.id.tv_algae).text = (algae * 100).toString()
@@ -247,6 +248,8 @@ class AnalysisFragment : Fragment() {
                     .lastLocation.addOnSuccessListener {
                         lat = it.latitude
                         long = it.longitude
+                        Log.e("lat", "latitude : $lat")
+                        Log.e("long", "longitude : $long")
                         report()
                     }
 

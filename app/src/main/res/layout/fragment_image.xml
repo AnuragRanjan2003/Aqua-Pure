@@ -25,13 +25,14 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <ImageView
+        <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/imageView"
             android:layout_width="300dp"
             android:layout_height="300dp"
             android:src="@drawable/img_place_holder"
             android:layout_marginTop="10dp"
             android:scaleType="centerCrop"
+            app:shapeAppearance="@style/RoundCorner"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView7" />

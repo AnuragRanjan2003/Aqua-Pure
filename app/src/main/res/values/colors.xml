@@ -9,6 +9,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="grey">#D5808080</color>
     <color name="green">#5BD703</color>
+    <color name="dark_green">#4CAF50</color>
     <color name="grey_dark">#D5424141</color>
     <color name="primary">#006bff</color>
     <color name="yellow">#FFA726</color>
