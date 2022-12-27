@@ -2,20 +2,24 @@ package com.example.waterquality
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
 import androidx.appcompat.app.AppCompatActivity
+import java.lang.Thread.sleep
 
 class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
 
-        Handler(mainLooper).postDelayed(
-            {
-                startActivity(Intent(this@SplashActivity, AskActivity::class.java))
+        Thread {
+            try {
+                sleep(3000)
+            } catch (e: Exception) {
+            } finally {
+                startActivity(Intent(this, MainActivity::class.java))
                 finish()
-            },
-            3000
-        )
+            }
+
+        }.start()
+
     }
 }

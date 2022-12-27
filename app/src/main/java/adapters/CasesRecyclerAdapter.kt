@@ -10,10 +10,7 @@ import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.example.waterquality.R
 import models.Report
-import java.math.RoundingMode
-import java.text.DecimalFormat
 import java.util.*
-import kotlin.math.floor
 
 class CasesRecyclerAdapter(list: List<Report>, context: Context) :
     RecyclerView.Adapter<CasesRecyclerAdapter.MyViewHolder>() {
@@ -26,10 +23,9 @@ class CasesRecyclerAdapter(list: List<Report>, context: Context) :
     }
 
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val lat: TextView = itemView.findViewById(R.id.tv_lat)
-        val lon: TextView = itemView.findViewById(R.id.tv_lon)
-        val date: TextView = itemView.findViewById(R.id.tv_date)
-        val problem: TextView = itemView.findViewById(R.id.tv_problem)
+        val place: TextView = itemView.findViewById(R.id.place)
+        val date: TextView = itemView.findViewById(R.id.date)
+        val problem: TextView = itemView.findViewById(R.id.problem)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
@@ -40,23 +36,17 @@ class CasesRecyclerAdapter(list: List<Report>, context: Context) :
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
 
-            val report = list[position]
-            holder.lat.text = "Latitude : ${format(report.lat!!)}"
-            holder.lon.text = "Longitude : ${format(report.lon!!)}"
-            holder.date.text = "Date : ${report.date}"
-            var text = "algae"
-            if (report.algae!! < report.dirty!!) text = "dirty"
-            holder.problem.text = "Problem : $text"
+        val report = list[position]
+        holder.place.text = report.place
+        holder.date.text = report.date
+        var text = "algae"
+        if (report.algae!! < report.dirty!!) text = "dirty"
+        holder.problem.text = "Problem : $text"
 
     }
 
     override fun getItemCount(): Int {
         return list.size
-    }
-    private fun format(num : Double): String {
-        val df =DecimalFormat("##.##")
-        df.roundingMode = RoundingMode.CEILING
-        return df.format(num)
     }
 
 

@@ -10,6 +10,7 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
+import android.location.Geocoder
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
@@ -28,7 +29,6 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
@@ -57,9 +57,12 @@ import models.colorApi.Response
 import models.processedInfo
 import ui.ReportProgressButton
 import viewModels.AnalysisFragmentViewModel
+import java.math.RoundingMode
+import java.text.DecimalFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 import kotlin.math.floor
 import kotlin.math.round
 
@@ -147,10 +150,10 @@ class AnalysisFragment : Fragment() {
 
         viewModel.getResponse(url)
         viewModel.getPrediction((activity as AppCompatActivity), uri)
-        viewModel.observeResponse().observe(viewLifecycleOwner, Observer { t -> putValues(t) })
-        viewModel.observeInfo().observe(viewLifecycleOwner, Observer { t -> putValues(t) })
-        viewModel.observePrediction().observe(viewLifecycleOwner, Observer { t -> setStatus(t) })
-        viewModel.observeQuality().observe(viewLifecycleOwner, Observer { t -> putValues(t) })
+        viewModel.observeResponse().observe(viewLifecycleOwner) { t -> putValues(t) }
+        viewModel.observeInfo().observe(viewLifecycleOwner) { t -> putValues(t) }
+        viewModel.observePrediction().observe(viewLifecycleOwner) { t -> setStatus(t) }
+        viewModel.observeQuality().observe(viewLifecycleOwner) { t -> putValues(t) }
 
         d("url", arguments?.getString("url")!!)
 
@@ -204,12 +207,22 @@ class AnalysisFragment : Fragment() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun report() {
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        val format = DateTimeFormatter.ofPattern("yyyy MM dd HH mm")
+        val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+        val format = DateTimeFormatter.ofPattern("dd MM yyyy HH mm")
         val latS = formatToName(lat)
         val lonS = formatToName(long)
+        val place = getPlace(lat, long)
         val report =
-            Report(fuser.uid, drinkable, algae, dirty, LocalDate.now().format(formatter), lat, long)
+            Report(
+                fuser.uid,
+                drinkable,
+                algae,
+                dirty,
+                LocalDate.now().format(formatter),
+                lat,
+                long,
+                place
+            )
         if (latS.isBlank() || lonS.isBlank()) {
             Toast.makeText(
                 (activity as AppCompatActivity),
@@ -235,6 +248,28 @@ class AnalysisFragment : Fragment() {
 
     }
 
+    private fun getPlace(lat: Double, long: Double): String {
+        val geocoder =
+            Geocoder((activity as AppCompatActivity).applicationContext, Locale.getDefault())
+        val sb = StringBuilder()
+        try {
+            val addressList = geocoder.getFromLocation(lat, long, 1)
+
+            if (!addressList.isNullOrEmpty()) {
+                val address = addressList[0]
+
+                sb.append(address.subLocality + ", ")
+                sb.append(address.locality+", ")
+                sb.append(address.adminArea)
+
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            sb.append(format(lat)).append(", "+format(long))
+        }
+        return sb.toString()
+    }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun getLocation() {
@@ -247,12 +282,12 @@ class AnalysisFragment : Fragment() {
                 LocationServices.getFusedLocationProviderClient((activity as AppCompatActivity))
                     .lastLocation.addOnSuccessListener {
                         if (it != null) {
-                            lat = it!!.latitude
-                            long = it!!.longitude
+                            lat = it.latitude
+                            long = it.longitude
                             Log.e("lat", "latitude : $lat")
                             Log.e("long", "longitude : $long")
                             report()
-                        }else{
+                        } else {
                             getLocation()
                         }
                     }
@@ -288,7 +323,7 @@ class AnalysisFragment : Fragment() {
 
         request.addOnCompleteListener {
             try {
-                val response = it.getResult(ApiException::class.java)
+                it.getResult(ApiException::class.java)
             } catch (e: ResolvableApiException) {
                 when (e.statusCode) {
                     LocationSettingsStatusCodes.RESOLUTION_REQUIRED ->
@@ -461,6 +496,11 @@ class AnalysisFragment : Fragment() {
             }, 5000)
 
         }
+    }
+    private fun format(num: Double): String {
+        val df = DecimalFormat("##.##")
+        df.roundingMode = RoundingMode.CEILING
+        return df.format(num)
     }
 
 }

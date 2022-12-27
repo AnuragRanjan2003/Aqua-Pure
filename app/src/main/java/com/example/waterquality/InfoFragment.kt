@@ -10,6 +10,7 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.ColorDrawable
 import android.location.Location
 import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -18,6 +19,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
@@ -40,6 +42,9 @@ import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
 import models.Quality
 import models.Report
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.util.*
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.floor
@@ -99,6 +104,7 @@ class InfoFragment : Fragment(), android.location.LocationListener {
         locationRequest.priority = Priority.PRIORITY_HIGH_ACCURACY
         locationRequest.interval = 5000
         locationRequest.fastestInterval = 2000
+
 
         checkLocationPermissionAndProceed()
         adapter = CasesRecyclerAdapter(list, context)
@@ -170,6 +176,7 @@ class InfoFragment : Fragment(), android.location.LocationListener {
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun useNetwork() {
         if (hasInternet()) {
             if (ActivityCompat.checkSelfPermission(
@@ -194,15 +201,27 @@ class InfoFragment : Fragment(), android.location.LocationListener {
         return locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun populateRec(location: Location) {
+        val dateNow = LocalDate.now()
         database.getReference("Reports").child(formatToName(location.latitude))
             .child(formatToName(location.longitude))
             .addValueEventListener(object : ValueEventListener {
+                val date = LocalDate.now()
                 override fun onDataChange(snapshot: DataSnapshot) {
+                    e("date now", "${dateNow.monthValue}+${dateNow.year}")
                     for (item in snapshot.children) {
                         val report = item.getValue(Report::class.java)
-                        if (report != null)
-                            list.add(report)
+                        if (report != null) {
+                            val date = SimpleDateFormat(
+                                "dd-MM-yyyy",
+                                Locale.getDefault()
+                            ).parse(report.date)
+                            e("date", "${date.month + 1}+${date.year + 1900}")
+                            if (dateNow.year == date.year + 1900 && dateNow.monthValue == date.month + 1)
+                                list.add(report)
+
+                        }
                     }
                     binding.cases.text = list.size.toString()
                     processQuality(list, floor(location.latitude).toInt())
@@ -323,6 +342,7 @@ class InfoFragment : Fragment(), android.location.LocationListener {
         return floor(num).toInt().toString()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onLocationChanged(location: Location) {
         try {
             populateRec(location)
