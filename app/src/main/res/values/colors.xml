@@ -20,4 +20,12 @@
     <color name="primaryVariant">#1327a0</color>
     <color name="secondary">#001f43</color>
     <color name="secondaryVariant">#000024</color>
+    <color name="yellow_light">#fff7e6</color>
+    <color name="yellow_text">#ffbe34</color>
+    <color name="green_light">#eaf8f3</color>
+    <color name="green_text">#80cfb2</color>
+    <color name="green_deep">#13B428</color>
+    <color name="def_back">#F7F7F8</color>
+    <color name="light_brown">#EADDCA</color>
+    <color name="text_brown"> #7B3F00 </color>
 </resources>

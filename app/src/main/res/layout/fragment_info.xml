@@ -15,19 +15,20 @@
             android:id="@+id/pb"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:elevation="5dp"
             android:indeterminateTint="@color/primary"
             app:layout_constraintBottom_toBottomOf="@+id/rec_cases"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView14" />
+            app:layout_constraintTop_toBottomOf="@+id/materialDivider" />
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cardView5"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="0dp"
             app:cardCornerRadius="10dp"
             app:cardElevation="5dp"
-            android:layout_marginTop="5dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
@@ -59,10 +60,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:fontFamily="@font/baloo_chettan"
+                    android:fontFamily="@font/baloo_bhai_2"
                     android:text="The quality of water is calculated using the submitted reports."
-                    android:textSize="15sp"
                     android:textColor="@color/white"
+                    android:textSize="15sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.5"
                     app:layout_constraintStart_toStartOf="parent"
@@ -73,9 +74,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:textColor="@color/white"
                     android:fontFamily="@font/baloo_chettan"
                     android:text="Water Quality"
+                    android:textColor="@color/white"
                     android:textSize="18sp"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/textView11" />
@@ -84,7 +85,7 @@
                     android:id="@+id/status"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/baloo_chettan"
+                    android:fontFamily="@font/baloo_bhai_2"
                     android:text="Status"
                     android:textColor="@color/white"
                     android:textSize="18sp"
@@ -108,10 +109,10 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:paddingBottom="5dp"
-                android:paddingTop="5dp"
                 android:layout_marginStart="10dp"
-                android:layout_marginEnd="10dp">
+                android:layout_marginEnd="10dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp">
 
                 <TextView
                     android:id="@+id/textView13"
@@ -131,7 +132,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="10dp"
-                    android:fontFamily="@font/baloo_chettan"
+                    android:fontFamily="@font/baloo_bhai_2"
                     android:text=""
                     android:textColor="@color/black"
                     android:textSize="16sp"
@@ -146,29 +147,82 @@
             android:id="@+id/textView14"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
             android:layout_marginTop="10dp"
             android:fontFamily="@font/baloo_chettan"
             android:text="Recent Cases"
             android:textColor="@color/black"
             android:textSize="20sp"
-            android:layout_marginStart="5dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/card_cases" />
+
+        <TextView
+            android:id="@+id/textView15"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="25dp"
+            android:fontFamily="@font/baloo_bhai_2"
+            android:text="date"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@+id/textView17"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/textView17" />
+
+        <TextView
+            android:id="@+id/textView16"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="30dp"
+            android:layout_marginTop="5dp"
+            android:fontFamily="@font/baloo_bhai_2"
+            android:text="problem"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView14" />
+
+
+        <TextView
+            android:id="@+id/textView17"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/baloo_bhai_2"
+            android:text="place"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@+id/textView16"
+            app:layout_constraintEnd_toStartOf="@+id/textView15"
+            app:layout_constraintStart_toEndOf="@+id/textView16"
+            app:layout_constraintTop_toTopOf="@+id/textView16" />
+
+        <com.google.android.material.divider.MaterialDivider
+            android:id="@+id/materialDivider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="4dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView16" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rec_cases"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="10dp"
+            android:layout_height="0dp"
             android:background="@color/on_primary"
-            tools:listitem="@layout/cases_layout"
-            android:paddingStart="2dp"
-            android:paddingEnd="2dp"
+            android:paddingStart="0dp"
+            android:paddingTop="2dp"
+            android:paddingEnd="0dp"
+            android:paddingBottom="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.444"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView14" />
+            app:layout_constraintTop_toBottomOf="@+id/materialDivider"
+            app:layout_constraintVertical_bias="0.5"
+            tools:listitem="@layout/cases_layout" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

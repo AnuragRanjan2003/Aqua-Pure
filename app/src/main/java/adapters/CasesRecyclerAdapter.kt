@@ -7,9 +7,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.annotation.RequiresApi
+import androidx.cardview.widget.CardView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.example.waterquality.R
 import models.Report
+import ui.ALGAE
+import ui.DIRTY
+import ui.StatusChip
 import java.util.*
 
 class CasesRecyclerAdapter(list: List<Report>, context: Context) :
@@ -25,7 +30,11 @@ class CasesRecyclerAdapter(list: List<Report>, context: Context) :
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val place: TextView = itemView.findViewById(R.id.place)
         val date: TextView = itemView.findViewById(R.id.date)
-        val problem: TextView = itemView.findViewById(R.id.problem)
+        val problem: View =
+            itemView
+                .findViewById<CardView>(R.id.cardView6)
+                .findViewById<ConstraintLayout>(R.id.cll)
+                .findViewById(R.id.include)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
@@ -33,16 +42,20 @@ class CasesRecyclerAdapter(list: List<Report>, context: Context) :
         return MyViewHolder(view)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-
+        val status = StatusChip(holder.problem,context)
         val report = list[position]
-        holder.place.text = report.place
+        holder.place.text = parsePlace(report.place)
         holder.date.text = report.date
-        var text = "algae"
-        if (report.algae!! < report.dirty!!) text = "dirty"
-        holder.problem.text = "Problem : $text"
+        var text = ALGAE
+        if (report.algae!! < report.dirty!!) text = DIRTY
 
+        status.setText(text)
+
+    }
+
+    private fun parsePlace(place: String?): String? {
+        return place?.replace(',','\n',false)
     }
 
     override fun getItemCount(): Int {
