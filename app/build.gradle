@@ -119,6 +119,8 @@ dependencies {
     implementation 'com.google.android.libraries.places:places:2.4.0'
 
     implementation 'com.android.volley:volley:1.2.1'
+    //Shimmer
+    implementation 'com.facebook.shimmer:shimmer:0.5.0'
 
 
 

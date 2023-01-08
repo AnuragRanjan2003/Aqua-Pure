@@ -61,8 +61,6 @@ private const val ARG_PARAM2 = "param2"
  * create an instance of this fragment.
  */
 private const val AREA_0 = 12391.88
-private const val visible = View.VISIBLE
-private const val invisible = View.INVISIBLE
 
 class InfoFragment : Fragment(), android.location.LocationListener {
     // TODO: Rename and change types of parameters
@@ -110,7 +108,12 @@ class InfoFragment : Fragment(), android.location.LocationListener {
         adapter = CasesRecyclerAdapter(list, context)
         binding.recCases.adapter = adapter
         binding.recCases.hasFixedSize()
-        binding.pb.visibility = visible
+
+        binding.placeholder.startShimmer()
+        binding.cardPlaceholder.startShimmer()
+
+        binding.numPlaceholder.startShimmer()
+
         return binding.root
     }
 
@@ -223,10 +226,16 @@ class InfoFragment : Fragment(), android.location.LocationListener {
 
                         }
                     }
+
+                    binding.numPlaceholder.stopShimmer()
+                    binding.numPlaceholder.visibility = View.INVISIBLE
+
                     binding.cases.text = list.size.toString()
                     processQuality(list, floor(location.latitude).toInt())
                     adapter.notifyDataSetChanged()
-                    binding.pb.visibility = invisible
+                    binding.placeholder.stopShimmer()
+                    binding.placeholder.visibility = View.GONE
+                    binding.recCases.visibility = View.VISIBLE
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -237,6 +246,7 @@ class InfoFragment : Fragment(), android.location.LocationListener {
 
 
     private fun putValues(quality: Quality?) {
+
         if (quality != null) {
             binding.status.text = getStatus(quality)
             when (getStatus(quality)) {
@@ -245,6 +255,9 @@ class InfoFragment : Fragment(), android.location.LocationListener {
                 "Not Good" -> binding.cl.background = ColorDrawable(context.getColor(R.color.red))
             }
         } else binding.status.text = "No Data"
+        binding.cardPlaceholder.stopShimmer()
+        binding.placeholder.visibility = View.INVISIBLE
+        binding.cardView5.visibility = View.VISIBLE
 
     }
 
