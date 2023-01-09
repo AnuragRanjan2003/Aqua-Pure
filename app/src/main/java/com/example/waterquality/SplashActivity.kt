@@ -15,7 +15,7 @@ class SplashActivity : AppCompatActivity() {
                 sleep(3000)
             } catch (e: Exception) {
             } finally {
-                startActivity(Intent(this, MainActivity::class.java))
+                startActivity(Intent(this, AskActivity::class.java))
                 finish()
             }
 
